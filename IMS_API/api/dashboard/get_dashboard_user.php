@@ -10,7 +10,14 @@ include_once '../../config/database.php';
 
 try {
     if(!isset($_SESSION['user'])) {
-        throw new Exception("Unauthorized access");
+        $status_code = 401;
+        http_response_code($status_code);
+        echo json_encode(array(
+            "status" => $status_code,
+            "success" => false,
+            "message" => "Unauthorized access"
+        ));
+        exit;
     }
 
     $database = new Database();
@@ -37,8 +44,11 @@ try {
     $companies_result = $companies_stmt->fetch(PDO::FETCH_ASSOC);
     $companies_count = $companies_result['count'];
 
-    // Return the data
+    // Return the data with success status code
+    $status_code = 200;
+    http_response_code($status_code);
     echo json_encode(array(
+        "status" => $status_code,
         "success" => true,
         "data" => array(
             "products_count" => $products_count,
@@ -47,9 +57,21 @@ try {
         )
     ));
 
-} catch (Exception $e) {
-    http_response_code(400);
+} catch (PDOException $e) {
+    // Database error
+    $status_code = 500;
+    http_response_code($status_code);
     echo json_encode(array(
+        "status" => $status_code,
+        "success" => false,
+        "message" => "Database error: " . $e->getMessage()
+    ));
+} catch (Exception $e) {
+    // General error
+    $status_code = 400;
+    http_response_code($status_code);
+    echo json_encode(array(
+        "status" => $status_code,
         "success" => false,
         "message" => $e->getMessage()
     ));

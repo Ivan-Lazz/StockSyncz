@@ -95,14 +95,10 @@ async function loadParties() {
     showSpinner();
     try {
         const response = await fetch('http://localhost/imsfin/IMS_API/api/reports/get_party_report.php');
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        
         const result = await response.json();
         
-        if (!result.success) {
-            throw new Error(result.message || 'Failed to load companies');
+        if (result.status !== 200 || !result.success) {
+            throw new Error(result.message || result.error || 'Failed to load companies');
         }
 
         const select = document.getElementById('party_name');
@@ -120,11 +116,12 @@ async function loadParties() {
         }
     } catch (error) {
         console.error('Error loading companies:', error);
-        showError('Error loading companies: ' + error.message);
+        handleApiError(error);
     } finally {
         hideSpinner();
     }
 }
+
 
 async function loadReport(useFilters = false) {
     if (!currentParty) return;
@@ -137,25 +134,43 @@ async function loadReport(useFilters = false) {
         url.searchParams.append('limit', recordsPerPage);
 
         const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-
         const result = await response.json();
 
-        if (!result.success) {
-            throw new Error(result.message || 'Failed to load report');
+        if (result.status !== 200 || !result.success) {
+            throw new Error(result.message || result.error || 'Failed to load report');
         }
 
         displayReport(result.data, currentParty, result.summary);
         updatePagination(result.pagination);
     } catch (error) {
         console.error('Error loading report:', error);
-        showError(error.message);
+        handleApiError(error);
         displayReport([], currentParty);
     } finally {
         hideSpinner();
     }
+}
+
+function handleApiError(error) {
+    let errorMessage = 'An error occurred. Please try again.';
+    
+    if (error.response) {
+        const statusCode = error.response.status;
+        switch (statusCode) {
+            case 400:
+                errorMessage = error.message || 'Invalid request. Please check your inputs.';
+                break;
+            case 500:
+                errorMessage = 'Database error occurred. Please try again later.';
+                break;
+            default:
+                errorMessage = error.message || 'Failed to load data.';
+        }
+    } else if (error.message) {
+        errorMessage = error.message;
+    }
+    
+    showError(errorMessage);
 }
 
 function displayReport(data, partyName, summary = {}) {
@@ -218,31 +233,27 @@ function displayReport(data, partyName, summary = {}) {
             `;
         });
 
-        // Page total row
+        // Add totals rows
         html += `
             <tr class="subtotal-row">
                 <td colspan="7" class="text-right"><strong>Page Total:</strong></td>
                 <td class="text-right"><strong>₱${formatNumber(pageTotal)}</strong></td>
                 <td colspan="3"></td>
-            </tr>
-        `;
+            </tr>`;
 
-        // Grand total row
         if (summary && summary.total_amount) {
             html += `
                 <tr class="total-row">
                     <td colspan="7" class="text-right"><strong>Grand Total:</strong></td>
                     <td class="text-right"><strong>₱${formatNumber(summary.total_amount)}</strong></td>
                     <td colspan="3"></td>
-                </tr>
-            `;
+                </tr>`;
         }
     } else {
         html += `
             <tr>
                 <td colspan="11" class="text-center">No purchase records found for ${partyName}</td>
-            </tr>
-        `;
+            </tr>`;
     }
 
     html += '</tbody></table>';
@@ -289,6 +300,7 @@ function updatePagination(pagination) {
 
     paginationContainer.innerHTML = html;
 }
+
 
 function changePage(page) {
     if (page < 1 || page > totalPages) return;

@@ -26,13 +26,25 @@ if (!empty($data->id) && !empty($data->firstname) && !empty($data->lastname) &&
     $party->city = $data->city;
 
     if ($party->update()) {
-        http_response_code(200);
-        echo json_encode(array("message" => "Party was updated."));
+        $status_code = 200;
+        http_response_code($status_code);
+        echo json_encode(array(
+            "status" => $status_code,
+            "message" => "Party was updated."
+        ));
     } else {
-        http_response_code(503);
-        echo json_encode(array("message" => "Unable to update party."));
+        $status_code = 503;
+        http_response_code($status_code);
+        echo json_encode(array(
+            "status" => $status_code,
+            "message" => "Unable to update party."
+        ));
     }
 } else {
-    http_response_code(400);
-    echo json_encode(array("message" => "Unable to update party. Data is incomplete."));
+    $status_code = 400;
+    http_response_code($status_code);
+    echo json_encode(array(
+        "status" => $status_code,
+        "message" => "Unable to update party. Data is incomplete."
+    ));
 }

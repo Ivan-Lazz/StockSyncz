@@ -81,6 +81,11 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 async function loadDashboardStats() {
+    // Show loading spinners
+    document.getElementById('productsCount').innerHTML = '<span class="loading-spinner"></span>';
+    document.getElementById('ordersCount').innerHTML = '<span class="loading-spinner"></span>';
+    document.getElementById('companiesCount').innerHTML = '<span class="loading-spinner"></span>';
+
     try {
         const response = await fetch('http://localhost/imsfin/IMS_API/api/dashboard/get_dashboard_stats.php', {
             method: 'GET',
@@ -90,32 +95,84 @@ async function loadDashboardStats() {
             credentials: 'same-origin'
         });
 
-        if (!response.ok) {
-            throw new Error('Failed to load dashboard statistics');
-        }
-
         const data = await response.json();
         
-        if (data.success) {
+        // Check both status code and success flag
+        if (data.status === 200 && data.success) {
             document.getElementById('productsCount').textContent = data.data.products_count;
             document.getElementById('ordersCount').textContent = data.data.orders_count;
             document.getElementById('companiesCount').textContent = data.data.companies_count;
         } else {
-            throw new Error(data.message || 'Failed to load statistics');
+            // Handle specific status codes
+            switch (data.status) {
+                case 401:
+                    // Unauthorized - redirect to login
+                    window.location.href = 'index.php';
+                    break;
+                case 500:
+                    throw new Error('Database error occurred. Please try again later.');
+                default:
+                    throw new Error(data.message || 'Failed to load statistics');
+            }
         }
 
     } catch (error) {
         console.error('Error:', error);
-        const errorMessage = 'Error loading dashboard data. Please refresh the page.';
+        const errorMessage = error.message || 'Error loading dashboard data. Please refresh the page.';
         
-        document.getElementById('productsCount').innerHTML = 
-            `<span class="error-message">${errorMessage}</span>`;
-        document.getElementById('ordersCount').innerHTML = 
-            `<span class="error-message">${errorMessage}</span>`;
-        document.getElementById('companiesCount').innerHTML = 
-            `<span class="error-message">${errorMessage}</span>`;
+        // Display error message in all cards
+        const errorHtml = `<span class="error-message">${errorMessage}</span>`;
+        document.getElementById('productsCount').innerHTML = errorHtml;
+        document.getElementById('ordersCount').innerHTML = errorHtml;
+        document.getElementById('companiesCount').innerHTML = errorHtml;
+
+        // If it's an authorization error, redirect to login after a brief delay
+        if (error.message.includes('Unauthorized')) {
+            setTimeout(() => {
+                window.location.href = 'index.php';
+            }, 1500);
+        }
     }
 }
+
+const style = document.createElement('style');
+style.textContent = `
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top-color: #3498db;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.error-message {
+    color: #dc3545;
+    font-size: 14px;
+    display: block;
+    text-align: center;
+    padding: 10px;
+    margin: 5px 0;
+    background-color: #ffe6e6;
+    border-radius: 4px;
+    border: 1px solid #ffcccc;
+}
+
+.card {
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+`;
+document.head.appendChild(style);
 
 // Refresh stats every 5 minutes
 setInterval(loadDashboardStats, 300000);

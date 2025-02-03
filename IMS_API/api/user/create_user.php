@@ -25,14 +25,26 @@ if (!empty($data->firstname) && !empty($data->lastname) &&
     $user->status = $data->status ?? 'active';
 
     if ($user->create()) {
-        http_response_code(201);
-        echo json_encode(array("message" => "User was created."));
+        $status_code = 201;
+        http_response_code($status_code);
+        echo json_encode(array(
+            "status" => $status_code,
+            "message" => "User was created."
+        ));
     } else {
-        http_response_code(503);
-        echo json_encode(array("message" => "Unable to create user."));
+        $status_code = 503;
+        http_response_code($status_code);
+        echo json_encode(array(
+            "status" => $status_code,
+            "message" => "Unable to create user."
+        ));
     }
 } else {
-    http_response_code(400);
-    echo json_encode(array("message" => "Unable to create user. Data is incomplete."));
+    $status_code = 400;
+    http_response_code($status_code);
+    echo json_encode(array(
+        "status" => $status_code,
+        "message" => "Unable to create user. Data is incomplete."
+    ));
 }
 

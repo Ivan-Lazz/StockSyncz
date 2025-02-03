@@ -140,7 +140,6 @@ function displayStockData(stocks) {
                     <th>Packing Size</th>
                     <th>Product Quantity</th>
                     <th>Product Selling Price</th>
-                    <th>Edit</th>
                 </tr>
             </thead>
             <tbody>
@@ -161,13 +160,6 @@ function displayStockData(stocks) {
                     <td>${stock.packing_size}</td>
                     <td class="text-right ${lowStock ? 'text-danger' : ''}">${formatNumber(stock.product_qty)}</td>
                     <td class="text-right">₱${stock.product_selling_price}</td>
-                    <td>
-                        <center>
-                            <a href="edit_stock_master.php?id=${stock.id}" class="btn btn-primary btn-mini">
-                                <i class="icon-pencil"></i> Edit
-                            </a>
-                        </center>
-                    </td>
                 </tr>
             `;
         });

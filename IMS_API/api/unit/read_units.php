@@ -45,44 +45,57 @@ try {
             array_push($units_arr, $unit_item);
         }
 
-        // Prepare response with pagination info
-        $response = array(
+        // Success response with data and pagination
+        $status_code = 200;
+        http_response_code($status_code);
+        echo json_encode([
+            "status" => $status_code,
             "success" => true,
-            "records" => $units_arr,
-            "pagination" => array(
-                "current_page" => $page,
-                "total_pages" => $total_pages,
-                "records_per_page" => $records_per_page,
-                "total_records" => $total_records
-            )
-        );
-
-        http_response_code(200);
-        echo json_encode($response);
+            "data" => [
+                "records" => $units_arr,
+                "pagination" => [
+                    "current_page" => $page,
+                    "total_pages" => $total_pages,
+                    "records_per_page" => $records_per_page,
+                    "total_records" => $total_records
+                ]
+            ]
+        ]);
     } else {
-        http_response_code(200);
-        echo json_encode(array(
+        // No records found - still return 200 with empty data
+        $status_code = 200;
+        http_response_code($status_code);
+        echo json_encode([
+            "status" => $status_code,
             "success" => true,
-            "records" => array(),
-            "pagination" => array(
-                "current_page" => $page,
-                "total_pages" => 0,
-                "records_per_page" => $records_per_page,
-                "total_records" => 0
-            ),
+            "data" => [
+                "records" => [],
+                "pagination" => [
+                    "current_page" => $page,
+                    "total_pages" => 0,
+                    "records_per_page" => $records_per_page,
+                    "total_records" => 0
+                ]
+            ],
             "message" => "No units found."
-        ));
+        ]);
     }
 } catch(PDOException $e) {
-    http_response_code(500);
-    echo json_encode(array(
+    // Database error
+    $status_code = 500;
+    http_response_code($status_code);
+    echo json_encode([
+        "status" => $status_code,
         "success" => false,
         "message" => "Database Error: " . $e->getMessage()
-    ));
+    ]);
 } catch(Exception $e) {
-    http_response_code(500);
-    echo json_encode(array(
+    // General error
+    $status_code = 500;
+    http_response_code($status_code);
+    echo json_encode([
+        "status" => $status_code,
         "success" => false,
         "message" => "Error: " . $e->getMessage()
-    ));
+    ]);
 }

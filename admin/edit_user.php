@@ -89,65 +89,34 @@ $id = $_GET['id'];
 
 <script>
 // Load user data
-function loadUserData() {
-    fetch(`http://localhost/imsfin/IMS_API/api/user/read_single_user.php?id=<?php echo $id; ?>`)
-        .then(response => response.json())
-        .then(user => {
-            document.getElementById('firstname').value = user.firstname;
-            document.getElementById('lastname').value = user.lastname;
-            document.getElementById('username').value = user.username;
+async function loadUserData() {
+    try {
+        const response = await fetch(`http://localhost/imsfin/IMS_API/api/user/read_single_user.php?id=<?php echo $id; ?>`);
+        const data = await response.json();
+        
+        if (data.status === 200) {
+            document.getElementById('firstname').value = data.firstname;
+            document.getElementById('lastname').value = data.lastname;
+            document.getElementById('username').value = data.username;
             // Don't set the password field value for security
             document.getElementById('password').value = '';
             // Add placeholder to indicate password is optional
             document.getElementById('password').placeholder = 'Leave empty to keep current password';
-            document.getElementById('role').value = user.role;
-            document.getElementById('status').value = user.status;
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error loading user data');
-        });
+            document.getElementById('role').value = data.role;
+            document.getElementById('status').value = data.status;
+        } else {
+            throw new Error(data.message || 'Error loading user data');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert(error.message || 'Error loading user data');
+        // Redirect back to user list if user not found
+        window.location.href = 'add_new_user.php';
+    }
 }
 
 // Update the form submission handler
-document.getElementById('editUserForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(this);
-    const userData = {};
-    formData.forEach((value, key) => {
-        // Only include password if it's not empty
-        if (key === 'password' && !value) {
-            return;
-        }
-        userData[key] = value;
-    });
-    
-    fetch('http://localhost/imsfin/IMS_API/api/user/update_user.php', {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(userData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.message === "User was updated.") {
-            document.getElementById('success').style.display = 'block';
-            setTimeout(() => {
-                window.location.href = 'add_new_user.php';
-            }, 1500);
-        } else {
-            throw new Error(data.message);
-        }
-    })
-    .catch(error => {
-        alert('Error updating user: ' + error.message);
-    });
-});
-
-// Form submission handler
-document.getElementById('editUserForm').addEventListener('submit', function(e) {
+document.getElementById('editUserForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
     const userData = {
@@ -165,28 +134,30 @@ document.getElementById('editUserForm').addEventListener('submit', function(e) {
         userData.password = password;
     }
     
-    fetch('http://localhost/imsfin/IMS_API/api/user/update_user.php', {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(userData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.message === "User was updated.") {
+    try {
+        const response = await fetch('http://localhost/imsfin/IMS_API/api/user/update_user.php', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(userData)
+        });
+        
+        const data = await response.json();
+        
+        if (data.status === 200 && data.message === "User was updated.") {
             document.getElementById('success').style.display = 'block';
+            // Redirect after successful update
             setTimeout(() => {
                 window.location.href = 'add_new_user.php';
-            }, 300000);
+            }, 1500);
         } else {
-            alert(data.message);
+            throw new Error(data.message || 'Error updating user');
         }
-    })
-    .catch(error => {
+    } catch (error) {
         console.error('Error:', error);
-        alert('Error updating user. Please try again.');
-    });
+        alert(error.message || 'Error updating user. Please try again.');
+    }
 });
 
 // Load user data when page loads

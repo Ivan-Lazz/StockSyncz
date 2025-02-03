@@ -83,8 +83,10 @@ try {
     $summary_stmt->execute();
     $summary = $summary_stmt->fetch(PDO::FETCH_ASSOC);
 
-    http_response_code(200);
+    $status_code = 200;
+    http_response_code($status_code);
     echo json_encode([
+        "status" => $status_code,
         "success" => true,
         "data" => $purchases,
         "pagination" => [
@@ -96,9 +98,20 @@ try {
         "summary" => $summary
     ]);
 
-} catch (Exception $e) {
-    http_response_code(500);
+} catch (PDOException $e) {
+    $status_code = 500;
+    http_response_code($status_code);
     echo json_encode([
+        "status" => $status_code,
+        "success" => false,
+        "message" => "Database error: Unable to fetch expiry report.",
+        "error" => $e->getMessage()
+    ]);
+} catch (Exception $e) {
+    $status_code = 400;
+    http_response_code($status_code);
+    echo json_encode([
+        "status" => $status_code,
         "success" => false,
         "message" => "Unable to fetch expiry report.",
         "error" => $e->getMessage()

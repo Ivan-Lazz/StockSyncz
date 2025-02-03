@@ -175,31 +175,36 @@ async function loadCompanies() {
         const tbody = document.getElementById('companyTableBody');
         tbody.innerHTML = '';
         
-        if (data.records && data.records.length > 0) {
-            data.records.forEach(company => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${company.id}</td>
-                        <td>${company.companyname}</td>
-                        <td><center><a href="edit_company.php?id=${company.id}" class="text-success">Edit</a></center></td>
-                        <td><center><a href="#" onclick="deleteCompany(${company.id})" class="text-error">Delete</a></center></td>
-                    </tr>
-                `;
-            });
+        if (data.status === 200) {
+            if (data.records && data.records.length > 0) {
+                data.records.forEach(company => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${company.id}</td>
+                            <td>${company.companyname}</td>
+                            <td><center><a href="edit_company.php?id=${company.id}" class="text-success">Edit</a></center></td>
+                            <td><center><a href="#" onclick="deleteCompany(${company.id})" class="text-error">Delete</a></center></td>
+                        </tr>
+                    `;
+                });
 
-            if (data.pagination && data.pagination.total_pages > 1) {
-                renderPagination(data.pagination);
+                if (data.pagination && data.pagination.total_pages > 1) {
+                    renderPagination(data.pagination);
+                } else {
+                    document.getElementById('paginationContainer').innerHTML = '';
+                }
             } else {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center">No companies found</td></tr>';
                 document.getElementById('paginationContainer').innerHTML = '';
             }
         } else {
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center">No companies found</td></tr>';
-            document.getElementById('paginationContainer').innerHTML = '';
+            throw new Error(data.message || 'Error loading companies');
         }
     } catch (error) {
         console.error('Error loading companies:', error);
         document.getElementById('companyTableBody').innerHTML = 
             '<tr><td colspan="4" class="text-center text-error">Error loading companies. Please try again.</td></tr>';
+        document.getElementById('paginationContainer').innerHTML = '';
     } finally {
         spinner.style.display = 'none';
     }
@@ -219,30 +224,24 @@ function renderPagination(pagination) {
                 <button class="btn" onclick="changePage(1)" ${pagination.current_page === 1 ? 'disabled' : ''}>
                     First
                 </button>
-                <button class="btn" onclick="changePage(${pagination.current_page - 1})" ${pagination.current_page === 1 ? 'disabled' : ''}>
-                    Previous
-                </button>
+                <button class="btn" onclick="changePage(${pagination.current_page - 1})" 
+                    ${pagination.current_page === 1 ? 'disabled' : ''}>Previous</button>
                 <span class="page-numbers">`;
 
-    // Show page numbers
+    // Show page numbers with current page highlighted
     for (let i = Math.max(1, pagination.current_page - 2); 
          i <= Math.min(pagination.total_pages, pagination.current_page + 2); i++) {
         html += `
-            <button class="btn ${i === pagination.current_page ? 'btn-info' : ''}" onclick="changePage(${i})">
-                ${i}
-            </button>`;
+            <button class="btn ${i === pagination.current_page ? 'btn-info' : ''}" 
+                onclick="changePage(${i})">${i}</button>`;
     }
 
     html += `
                 </span>
                 <button class="btn" onclick="changePage(${pagination.current_page + 1})" 
-                    ${pagination.current_page === pagination.total_pages ? 'disabled' : ''}>
-                    Next
-                </button>
+                    ${pagination.current_page === pagination.total_pages ? 'disabled' : ''}>Next</button>
                 <button class="btn" onclick="changePage(${pagination.total_pages})" 
-                    ${pagination.current_page === pagination.total_pages ? 'disabled' : ''}>
-                    Last
-                </button>
+                    ${pagination.current_page === pagination.total_pages ? 'disabled' : ''}>Last</button>
             </div>
         </div>`;
 
@@ -272,10 +271,11 @@ async function deleteCompany(id) {
 
         const data = await response.json();
         
-        if (data.message === "Company was deleted.") {
-            currentPage = 1; // Reset to first page
-            loadCompanies();
+        if (data.status === 200) {
             showSuccessMessage('Company deleted successfully!');
+            // Reset to first page and reload
+            currentPage = 1;
+            await loadCompanies();
         } else {
             showErrorMessage(data.message || 'Error deleting company');
         }
@@ -309,11 +309,12 @@ document.getElementById('addCompanyForm').addEventListener('submit', async funct
 
         const data = await response.json();
         
-        if (data.message === "Company was created.") {
+        if (data.status === 201) {
             showSuccessMessage('Company added successfully!');
             this.reset();
-            currentPage = 1; // Reset to first page
-            loadCompanies();
+            // Reset to first page and reload
+            currentPage = 1;
+            await loadCompanies();
         } else {
             showErrorMessage(data.message || 'Error creating company');
         }

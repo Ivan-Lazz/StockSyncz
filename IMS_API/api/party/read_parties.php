@@ -15,12 +15,10 @@ try {
     $database = new Database();
     $db = $database->getConnection();
 
-    // Pagination parameters
     $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
     $records_per_page = isset($_GET['per_page']) ? (int)$_GET['per_page'] : 10;
     $offset = ($page - 1) * $records_per_page;
 
-    // Get total count first
     $count_query = "SELECT COUNT(*) as total FROM party_info";
     $count_stmt = $db->prepare($count_query);
     $count_stmt->execute();
@@ -28,7 +26,6 @@ try {
     $total_records = (int)$total_row['total'];
     $total_pages = ceil($total_records / $records_per_page);
 
-    // Get paginated data
     $query = "SELECT * FROM party_info ORDER BY id LIMIT :offset, :limit";
     $stmt = $db->prepare($query);
     $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
@@ -48,9 +45,10 @@ try {
         ];
     }
 
-    // Send response
-    http_response_code(200);
+    $status_code = 200;
+    http_response_code($status_code);
     echo json_encode([
+        'status' => $status_code,
         'success' => true,
         'records' => $parties,
         'pagination' => [
@@ -62,8 +60,10 @@ try {
     ]);
 
 } catch (PDOException $e) {
-    http_response_code(500);
+    $status_code = 500;
+    http_response_code($status_code);
     echo json_encode([
+        'status' => $status_code,
         'success' => false,
         'message' => 'Database Error: ' . $e->getMessage(),
         'error_details' => [
@@ -73,8 +73,10 @@ try {
         ]
     ]);
 } catch (Exception $e) {
-    http_response_code(500);
+    $status_code = 500;
+    http_response_code($status_code);
     echo json_encode([
+        'status' => $status_code,
         'success' => false,
         'message' => 'General Error: ' . $e->getMessage(),
         'error_details' => [

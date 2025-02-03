@@ -60,14 +60,31 @@ try {
         "total_records" => $total_records
     ];
 
-    http_response_code(200);
+    $status_code = 200;
+    http_response_code($status_code);
     echo json_encode([
-        "success" => true, 
+        "status" => $status_code,
+        "success" => true,
         "data" => $returns,
         "pagination" => $page_info
     ]);
 
+} catch (PDOException $e) {
+    $status_code = 500;
+    http_response_code($status_code);
+    echo json_encode([
+        "status" => $status_code,
+        "success" => false,
+        "message" => "Database error: Unable to fetch return report.",
+        "error" => $e->getMessage()
+    ]);
 } catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode(["success" => false, "message" => $e->getMessage()]);
+    $status_code = 400;
+    http_response_code($status_code);
+    echo json_encode([
+        "status" => $status_code,
+        "success" => false,
+        "message" => "Unable to fetch return report.",
+        "error" => $e->getMessage()
+    ]);
 }

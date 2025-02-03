@@ -73,7 +73,6 @@ let totalPages = 1;
 let recordsPerPage = 10;
 let currentSearch = '';
 
-// Debounce function for search
 function debounce(func, wait) {
     let timeout;
     return function executedFunction(...args) {
@@ -99,6 +98,8 @@ function handleSearch() {
 
 async function loadStockData() {
     showSpinner();
+    hideError();
+    
     try {
         let url = new URL('http://localhost/imsfin/IMS_API/api/stock/get_stock.php', window.location.origin);
         url.searchParams.append('page', currentPage);
@@ -111,8 +112,9 @@ async function loadStockData() {
         const response = await fetch(url);
         const result = await response.json();
         
-        if (!result.success) {
-            throw new Error(result.message || 'Failed to load stock data');
+        // Check both status code and success flag
+        if (result.status !== 200 || !result.success) {
+            throw new Error(result.message || result.error || 'Failed to load stock data');
         }
 
         displayStockData(result.data);
@@ -120,10 +122,33 @@ async function loadStockData() {
         
     } catch (error) {
         console.error('Error:', error);
-        showError(error.message);
+        handleApiError(error);
     } finally {
         hideSpinner();
     }
+}
+
+function handleApiError(error) {
+    let errorMessage = 'An error occurred. Please try again.';
+    
+    if (error.response) {
+        const statusCode = error.response.status;
+        switch (statusCode) {
+            case 400:
+                errorMessage = error.message || 'Invalid request. Please check your inputs.';
+                break;
+            case 500:
+                errorMessage = 'Database error occurred. Please try again later.';
+                break;
+            default:
+                errorMessage = error.message || 'Failed to load stock data.';
+        }
+    } else if (error.message) {
+        errorMessage = error.message;
+    }
+    
+    showError(errorMessage);
+    clearStockTable();
 }
 
 function displayStockData(stocks) {
@@ -184,6 +209,11 @@ function displayStockData(stocks) {
 }
 
 function updatePagination(pagination) {
+    if (!pagination || pagination.total_pages <= 1) {
+        document.getElementById('pagination').innerHTML = '';
+        return;
+    }
+
     totalPages = pagination.total_pages;
     const paginationContainer = document.getElementById('pagination');
     
@@ -223,7 +253,7 @@ function updatePagination(pagination) {
 }
 
 function changePage(page) {
-    if (page < 1 || page > totalPages) return;
+    if (page < 1 || page > totalPages || page === currentPage) return;
     currentPage = page;
     loadStockData();
 }
@@ -235,10 +265,20 @@ function changePageSize(size) {
 }
 
 function formatNumber(number) {
+    if (!number) return '0';
     return parseFloat(number).toLocaleString('en-US', {
         minimumFractionDigits: 0,
         maximumFractionDigits: 2
     });
+}
+
+function clearStockTable() {
+    document.getElementById('stockTableContainer').innerHTML = `
+        <div class="alert alert-info">
+            No stock records to display. Please try different search criteria.
+        </div>
+    `;
+    document.getElementById('pagination').innerHTML = '';
 }
 
 function showSpinner() {
@@ -256,6 +296,13 @@ function showError(message) {
     setTimeout(() => {
         errorDiv.style.display = 'none';
     }, 3000);
+}
+
+function hideError() {
+    const errorDiv = document.getElementById('errorMessage');
+    if (errorDiv) {
+        errorDiv.style.display = 'none';
+    }
 }
 </script>
 

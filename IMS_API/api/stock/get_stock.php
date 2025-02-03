@@ -71,8 +71,10 @@ try {
         ];
     }, $stocks);
 
-    http_response_code(200);
+    $status_code = 200;
+    http_response_code($status_code);
     echo json_encode([
+        'status' => $status_code,
         'success' => true,
         'data' => $formatted_stocks,
         'pagination' => [
@@ -83,10 +85,22 @@ try {
         ]
     ]);
 
+} catch (PDOException $e) {
+    error_log('Stock Master Database Error: ' . $e->getMessage());
+    $status_code = 500;
+    http_response_code($status_code);
+    echo json_encode([
+        'status' => $status_code,
+        'success' => false,
+        'message' => 'Database error fetching stock data',
+        'error' => $e->getMessage()
+    ]);
 } catch (Exception $e) {
     error_log('Stock Master Error: ' . $e->getMessage());
-    http_response_code(500);
+    $status_code = 400;
+    http_response_code($status_code);
     echo json_encode([
+        'status' => $status_code,
         'success' => false,
         'message' => 'Error fetching stock data',
         'error' => $e->getMessage()

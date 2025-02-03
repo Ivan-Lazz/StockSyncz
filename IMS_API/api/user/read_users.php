@@ -46,8 +46,12 @@ try {
         array_push($users_arr, $user_item);
     }
 
+    $status_code = 200;
+    http_response_code($status_code);
+    
     // Prepare response
     $response = array(
+        "status" => $status_code,
         "success" => true,
         "records" => $users_arr,
         "pagination" => array(
@@ -58,18 +62,21 @@ try {
         )
     );
 
-    http_response_code(200);
     echo json_encode($response);
 
 } catch(PDOException $e) {
-    http_response_code(500);
+    $status_code = 500;
+    http_response_code($status_code);
     echo json_encode(array(
+        "status" => $status_code,
         "success" => false,
         "message" => "Database Error: " . $e->getMessage()
     ));
 } catch(Exception $e) {
-    http_response_code(500);
+    $status_code = 500;
+    http_response_code($status_code);
     echo json_encode(array(
+        "status" => $status_code,
         "success" => false,
         "message" => "Error: " . $e->getMessage()
     ));

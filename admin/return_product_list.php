@@ -74,6 +74,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     document.getElementById('reportForm').addEventListener('submit', function(e) {
         e.preventDefault();
+        currentPage = 1;
         loadReport(true);
     });
 });
@@ -101,21 +102,39 @@ async function loadReport(useFilters = false) {
         const response = await fetch(url);
         const result = await response.json();
 
-        if (!response.ok) {
-            throw new Error(result.message || 'Failed to load report');
-        }
-
-        if (!result.success) {
-            throw new Error(result.message || 'Failed to load report data');
+        if (result.status !== 200 || !result.success) {
+            throw new Error(result.message || result.error || 'Failed to load report');
         }
 
         displayReport(result.data, result.pagination);
     } catch (error) {
-        showError(error.message);
+        handleApiError(error);
         clearReport();
     } finally {
         hideSpinner();
     }
+}
+
+function handleApiError(error) {
+    let errorMessage = 'An error occurred. Please try again.';
+    
+    if (error.response) {
+        const statusCode = error.response.status;
+        switch (statusCode) {
+            case 400:
+                errorMessage = error.message || 'Invalid request. Please check your inputs.';
+                break;
+            case 500:
+                errorMessage = 'Database error occurred. Please try again later.';
+                break;
+            default:
+                errorMessage = error.message || 'Failed to load report data.';
+        }
+    } else if (error.message) {
+        errorMessage = error.message;
+    }
+    
+    showError(errorMessage);
 }
 
 function displayReport(data, pagination) {
@@ -153,12 +172,12 @@ function displayReport(data, pagination) {
             html += `
                 <tr>
                     <td>${formatDate(item.return_date)}</td>
-                    <td>${item.bill_no}</td>
-                    <td>${item.return_by}</td>
-                    <td>${item.product_company}</td>
-                    <td>${item.product_name}</td>
-                    <td>${item.product_unit}</td>
-                    <td>${item.packing_size}</td>
+                    <td>${item.bill_no || '-'}</td>
+                    <td>${item.return_by || '-'}</td>
+                    <td>${item.product_company || '-'}</td>
+                    <td>${item.product_name || '-'}</td>
+                    <td>${item.product_unit || '-'}</td>
+                    <td>${item.packing_size || '-'}</td>
                     <td class="text-right">₱${formatNumber(item.product_price)}</td>
                     <td class="text-right">${formatNumber(item.product_qty)}</td>
                     <td class="text-right">₱${formatNumber(total)}</td>
@@ -184,48 +203,49 @@ function displayReport(data, pagination) {
         </div>
     `;
 
-    // Add pagination controls
+    // Add pagination if needed
     if (pagination && pagination.total_pages > 1) {
-        html += `
-            <div class="pagination-container">
-                <div class="dataTables_info">
-                    Showing ${((pagination.current_page - 1) * pagination.records_per_page) + 1} to 
-                    ${Math.min(pagination.current_page * pagination.records_per_page, pagination.total_records)} 
-                    of ${pagination.total_records} entries
-                </div>
-                <div class="dataTables_paginate">
-                    <button class="btn" onclick="changePage(1)" ${pagination.current_page === 1 ? 'disabled' : ''}>
-                        First
-                    </button>
-                    <button class="btn" onclick="changePage(${pagination.current_page - 1})" ${pagination.current_page === 1 ? 'disabled' : ''}>
-                        Previous
-                    </button>
-                    <span class="page-numbers">
-        `;
-
-        // Show page numbers
-        for (let i = Math.max(1, pagination.current_page - 2); i <= Math.min(pagination.total_pages, pagination.current_page + 2); i++) {
-            html += `
-                <button class="btn ${i === pagination.current_page ? 'btn-info' : ''}" onclick="changePage(${i})">
-                    ${i}
-                </button>
-            `;
-        }
-
-        html += `
-                    </span>
-                    <button class="btn" onclick="changePage(${pagination.current_page + 1})" ${pagination.current_page === pagination.total_pages ? 'disabled' : ''}>
-                        Next
-                    </button>
-                    <button class="btn" onclick="changePage(${pagination.total_pages})" ${pagination.current_page === pagination.total_pages ? 'disabled' : ''}>
-                        Last
-                    </button>
-                </div>
-            </div>
-        `;
+        html += generatePaginationHtml(pagination);
     }
 
     container.innerHTML = html;
+}
+
+function generatePaginationHtml(pagination) {
+    return `
+        <div class="pagination-container">
+            <div class="dataTables_info">
+                Showing ${((pagination.current_page - 1) * pagination.records_per_page) + 1} to 
+                ${Math.min(pagination.current_page * pagination.records_per_page, pagination.total_records)} 
+                of ${pagination.total_records} entries
+            </div>
+            <div class="dataTables_paginate">
+                <button class="btn" onclick="changePage(1)" 
+                    ${pagination.current_page === 1 ? 'disabled' : ''}>First</button>
+                <button class="btn" onclick="changePage(${pagination.current_page - 1})" 
+                    ${pagination.current_page === 1 ? 'disabled' : ''}>Previous</button>
+                <span class="page-numbers">
+                    ${generatePageNumbers(pagination)}
+                </span>
+                <button class="btn" onclick="changePage(${pagination.current_page + 1})" 
+                    ${pagination.current_page === pagination.total_pages ? 'disabled' : ''}>Next</button>
+                <button class="btn" onclick="changePage(${pagination.total_pages})" 
+                    ${pagination.current_page === pagination.total_pages ? 'disabled' : ''}>Last</button>
+            </div>
+        </div>
+    `;
+}
+
+function generatePageNumbers(pagination) {
+    let html = '';
+    for (let i = Math.max(1, pagination.current_page - 2); 
+         i <= Math.min(pagination.total_pages, pagination.current_page + 2); i++) {
+        html += `
+            <button class="btn ${i === pagination.current_page ? 'btn-info' : ''}" 
+                onclick="changePage(${i})">${i}</button>
+        `;
+    }
+    return html;
 }
 
 function changePage(page) {
@@ -233,24 +253,13 @@ function changePage(page) {
     loadReport(true);
 }
 
-function resetSearch() {
-    const today = new Date();
-    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-    
-    document.getElementById('start_date').value = formatDateForInput(firstDay);
-    document.getElementById('end_date').value = formatDateForInput(today);
-    currentPage = 1;
-    loadReport(true);
-}
-
 function formatDate(dateString) {
-    if (!dateString) return '';
-    const options = { 
-        year: 'numeric', 
-        month: 'short', 
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
         day: 'numeric'
-    };
-    return new Date(dateString).toLocaleDateString('en-US', options);
+    });
 }
 
 function formatDateForInput(date) {
@@ -258,6 +267,7 @@ function formatDateForInput(date) {
 }
 
 function formatNumber(number) {
+    if (!number) return '0.00';
     return parseFloat(number).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
@@ -267,6 +277,7 @@ function resetSearch() {
     
     document.getElementById('start_date').value = formatDateForInput(firstDay);
     document.getElementById('end_date').value = formatDateForInput(today);
+    currentPage = 1;
     loadReport(true);
 }
 
@@ -282,6 +293,9 @@ function showError(message) {
     const errorDiv = document.getElementById('errorMessage');
     errorDiv.style.display = 'block';
     errorDiv.querySelector('span').textContent = message;
+    setTimeout(() => {
+        errorDiv.style.display = 'none';
+    }, 3000);
 }
 
 function hideError() {
@@ -289,7 +303,11 @@ function hideError() {
 }
 
 function clearReport() {
-    document.getElementById('reportTableContainer').innerHTML = '';
+    document.getElementById('reportTableContainer').innerHTML = `
+        <div class="alert alert-info">
+            No return records to display. Please try different search criteria.
+        </div>
+    `;
 }
 </script>
 

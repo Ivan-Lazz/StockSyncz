@@ -21,14 +21,28 @@ if (isset($_GET['unit']) && isset($_GET['product_name']) && isset($_GET['company
                 "packing_size" => $row['packing_size']
             ));
         }
-        http_response_code(200);
-        echo json_encode($sizes_arr);
+        $status_code = 200;
+        http_response_code($status_code);
+        echo json_encode([
+            "status" => $status_code,
+            "success" => true,
+            "data" => $sizes_arr
+        ]);
     } else {
-        http_response_code(404);
-        echo json_encode(array("message" => "No packing sizes found."));
+        $status_code = 404;
+        http_response_code($status_code);
+        echo json_encode([
+            "status" => $status_code,
+            "success" => false,
+            "message" => "No packing sizes found."
+        ]);
     }
 } else {
-    http_response_code(400);
-    echo json_encode(array("message" => "Missing required parameters."));
+    $status_code = 400;
+    http_response_code($status_code);
+    echo json_encode([
+        "status" => $status_code,
+        "success" => false,
+        "message" => "Missing required parameters."
+    ]);
 }
-

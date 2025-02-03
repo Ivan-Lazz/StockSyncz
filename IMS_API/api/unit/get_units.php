@@ -22,13 +22,28 @@ try {
                 "unit" => $row['unit']
             ));
         }
-        http_response_code(200);
-        echo json_encode($units_arr);
+        $status_code = 200;
+        http_response_code($status_code);
+        echo json_encode([
+            "status" => $status_code,
+            "success" => true,
+            "data" => $units_arr
+        ]);
     } else {
-        http_response_code(404);
-        echo json_encode(array("message" => "No units found."));
+        $status_code = 404;
+        http_response_code($status_code);
+        echo json_encode([
+            "status" => $status_code,
+            "success" => false,
+            "message" => "No units found."
+        ]);
     }
 } catch(PDOException $e) {
-    http_response_code(503);
-    echo json_encode(array("message" => "Unable to get units."));
+    $status_code = 503;
+    http_response_code($status_code);
+    echo json_encode([
+        "status" => $status_code,
+        "success" => false,
+        "message" => "Unable to get units."
+    ]);
 }

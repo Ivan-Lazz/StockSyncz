@@ -75,6 +75,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     document.getElementById('reportForm').addEventListener('submit', function(e) {
         e.preventDefault();
+        const startDate = new Date(document.getElementById('start_date').value);
+        const endDate = new Date(document.getElementById('end_date').value);
+        
+        if (startDate > endDate) {
+            showError('Start date cannot be later than end date');
+            return;
+        }
+        
         currentPage = 1;
         loadPurchases(true);
     });
@@ -99,8 +107,8 @@ async function loadPurchases(useFilters = false) {
         const response = await fetch(url);
         const result = await response.json();
 
-        if (!result.success) {
-            throw new Error(result.message || 'Failed to load purchases');
+        if (result.status !== 200 || !result.success) {
+            throw new Error(result.message || result.error || 'Failed to load purchases');
         }
 
         displayPurchases(result.data);
@@ -108,10 +116,33 @@ async function loadPurchases(useFilters = false) {
 
     } catch (error) {
         console.error('Error:', error);
-        showError('Error loading purchase data: ' + error.message);
+        handleApiError(error);
     } finally {
         hideSpinner();
     }
+}
+
+function handleApiError(error) {
+    let errorMessage = 'An error occurred. Please try again.';
+    
+    if (error.response) {
+        const errorData = error.response;
+        switch (errorData.status) {
+            case 400:
+                errorMessage = errorData.message || 'Invalid request. Please check your inputs.';
+                break;
+            case 500:
+                errorMessage = 'Database error occurred. Please try again later.';
+                break;
+            default:
+                errorMessage = errorData.message || 'Failed to load purchase data.';
+        }
+    } else if (error.message) {
+        errorMessage = error.message;
+    }
+    
+    showError(errorMessage);
+    clearTable();
 }
 
 function displayPurchases(purchases) {
@@ -144,15 +175,15 @@ function displayPurchases(purchases) {
             html += `
                 <tr>
                     <td>${actualIndex}</td>
-                    <td>${purchase.username || ''}</td>
-                    <td>${purchase.company_name || ''}</td>
-                    <td>${purchase.product_name || ''}</td>
-                    <td>${purchase.unit || ''}</td>
-                    <td>${purchase.packing_size || ''}</td>
-                    <td>${purchase.quantity || ''}</td>
-                    <td>₱${formatNumber(purchase.price)}</td>
-                    <td>${purchase.party_name || ''}</td>
-                    <td>${purchase.purchase_type || ''}</td>
+                    <td>${purchase.username || '-'}</td>
+                    <td>${purchase.company_name || '-'}</td>
+                    <td>${purchase.product_name || '-'}</td>
+                    <td>${purchase.unit || '-'}</td>
+                    <td>${purchase.packing_size || '-'}</td>
+                    <td class="text-right">${formatNumber(purchase.quantity, true)}</td>
+                    <td class="text-right">₱${formatNumber(purchase.price)}</td>
+                    <td>${purchase.party_name || '-'}</td>
+                    <td>${purchase.purchase_type || '-'}</td>
                     <td>${formatDate(purchase.expiry_date)}</td>
                     <td>${formatDate(purchase.purchase_date)}</td>
                 </tr>
@@ -171,6 +202,11 @@ function displayPurchases(purchases) {
 }
 
 function updatePagination(pagination) {
+    if (!pagination || pagination.total_pages <= 1) {
+        document.getElementById('pagination').innerHTML = '';
+        return;
+    }
+
     totalPages = pagination.total_pages;
     const paginationContainer = document.getElementById('pagination');
     
@@ -184,17 +220,14 @@ function updatePagination(pagination) {
     // Page numbers
     for (let i = 1; i <= totalPages; i++) {
         if (
-            i === 1 || // First page
-            i === totalPages || // Last page
-            (i >= currentPage - 2 && i <= currentPage + 2) // Pages around current page
+            i === 1 || 
+            i === totalPages || 
+            (i >= currentPage - 2 && i <= currentPage + 2)
         ) {
             html += `<li class="page-item ${i === currentPage ? 'active' : ''}">
                 <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
             </li>`;
-        } else if (
-            i === currentPage - 3 ||
-            i === currentPage + 3
-        ) {
+        } else if (i === currentPage - 3 || i === currentPage + 3) {
             html += '<li class="page-item disabled"><span class="page-link">...</span></li>';
         }
     }
@@ -214,7 +247,7 @@ function updatePagination(pagination) {
 }
 
 function changePage(page) {
-    if (page < 1 || page > totalPages) return;
+    if (page < 1 || page > totalPages || page === currentPage) return;
     currentPage = page;
     loadPurchases(true);
 }
@@ -226,7 +259,7 @@ function changePageSize(size) {
 }
 
 function formatDate(dateString) {
-    if (!dateString) return '';
+    if (!dateString) return '-';
     return new Date(dateString).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
@@ -234,8 +267,11 @@ function formatDate(dateString) {
     });
 }
 
-function formatNumber(number) {
-    return parseFloat(number).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+function formatNumber(number, isQuantity = false) {
+    if (!number) return '0.00';
+    return isQuantity 
+        ? parseInt(number).toLocaleString('en-US')
+        : parseFloat(number).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
 function formatDateForInput(date) {
@@ -248,6 +284,9 @@ function resetSearch() {
     
     document.getElementById('start_date').value = formatDateForInput(firstDay);
     document.getElementById('end_date').value = formatDateForInput(today);
+    document.getElementById('records_per_page').value = "10";
+    
+    recordsPerPage = 10;
     currentPage = 1;
     loadPurchases(true);
 }
@@ -261,7 +300,28 @@ function hideSpinner() {
 }
 
 function showError(message) {
-    alert(message);
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'alert alert-error';
+    errorDiv.innerHTML = `
+        <button class="close" data-dismiss="alert">×</button>
+        <strong>Error!</strong> ${message}
+    `;
+    
+    const container = document.getElementById('purchaseTableContainer');
+    container.insertBefore(errorDiv, container.firstChild);
+    
+    setTimeout(() => {
+        errorDiv.remove();
+    }, 3000);
+}
+
+function clearTable() {
+    document.getElementById('purchaseTableContainer').innerHTML = `
+        <div class="alert alert-info">
+            No purchase records to display. Please try different search criteria.
+        </div>
+    `;
+    document.getElementById('pagination').innerHTML = '';
 }
 </script>
 

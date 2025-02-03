@@ -17,13 +17,24 @@ if (isset($_GET['id'])) {
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     
     if ($row) {
-        http_response_code(200);
-        echo json_encode($row);
+        $status_code = 200;
+        http_response_code($status_code);
+        $response = $row;
+        $response['status'] = $status_code;
+        echo json_encode($response);
     } else {
-        http_response_code(404);
-        echo json_encode(array("message" => "User not found."));
+        $status_code = 404;
+        http_response_code($status_code);
+        echo json_encode(array(
+            "status" => $status_code,
+            "message" => "User not found."
+        ));
     }
 } else {
-    http_response_code(400);
-    echo json_encode(array("message" => "No ID provided."));
+    $status_code = 400;
+    http_response_code($status_code);
+    echo json_encode(array(
+        "status" => $status_code,
+        "message" => "No ID provided."
+    ));
 }

@@ -325,13 +325,13 @@ async function deleteParty(id) {
             },
             body: JSON.stringify({ id: id })
         });
-        
+
         const data = await response.json();
         
-        if (data.message === "Party was deleted.") {
-            currentPage = 1; // Reset to first page
-            loadParties();
+        if (data.status === 200) {
             showSuccessMessage('Party deleted successfully!');
+            currentPage = 1;
+            await loadParties();
         } else {
             showErrorMessage(data.message || 'Error deleting party');
         }
@@ -357,14 +357,14 @@ document.getElementById('addPartyForm').addEventListener('submit', async functio
             },
             body: JSON.stringify(partyData)
         });
-        
+
         const data = await response.json();
         
-        if (data.message === "Party was created.") {
+        if (data.status === 201) {
             showSuccessMessage('Party added successfully!');
             this.reset();
-            currentPage = 1; // Reset to first page
-            loadParties();
+            currentPage = 1;
+            await loadParties();
         } else {
             showErrorMessage(data.message || 'Error creating party');
         }

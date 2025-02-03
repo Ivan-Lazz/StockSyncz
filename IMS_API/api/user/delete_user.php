@@ -18,13 +18,25 @@ if (!empty($data->id)) {
     $user->id = $data->id;
 
     if ($user->delete()) {
-        http_response_code(200);
-        echo json_encode(array("message" => "User was deleted."));
+        $status_code = 200;
+        http_response_code($status_code);
+        echo json_encode(array(
+            "status" => $status_code,
+            "message" => "User was deleted."
+        ));
     } else {
-        http_response_code(503);
-        echo json_encode(array("message" => "Unable to delete user."));
+        $status_code = 503;
+        http_response_code($status_code);
+        echo json_encode(array(
+            "status" => $status_code,
+            "message" => "Unable to delete user."
+        ));
     }
 } else {
-    http_response_code(400);
-    echo json_encode(array("message" => "Unable to delete user. No ID provided."));
+    $status_code = 400;
+    http_response_code($status_code);
+    echo json_encode(array(
+        "status" => $status_code,
+        "message" => "Unable to delete user. No ID provided."
+    ));
 }

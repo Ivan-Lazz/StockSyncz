@@ -115,7 +115,8 @@ async function loadUsers() {
         const tbody = document.getElementById('userTableBody');
         tbody.innerHTML = '';
         
-        if (data.success && data.records && data.records.length > 0) {
+        // Check both status code and success flag
+        if (data.status === 200 && data.success && data.records && data.records.length > 0) {
             data.records.forEach(user => {
                 tbody.innerHTML += `
                     <tr>
@@ -146,6 +147,7 @@ async function loadUsers() {
     }
 }
 
+
 function renderPagination(pagination) {
     const container = document.getElementById('paginationContainer');
     let html = `
@@ -165,7 +167,7 @@ function renderPagination(pagination) {
                 <span class="page-numbers">`;
 
     for (let i = Math.max(1, pagination.current_page - 2); 
-        i <= Math.min(pagination.total_pages, pagination.current_page + 2); i++) {
+         i <= Math.min(pagination.total_pages, pagination.current_page + 2); i++) {
         html += `
             <button class="btn ${i === pagination.current_page ? 'btn-info' : ''}" onclick="changePage(${i})">
                 ${i}
@@ -193,6 +195,11 @@ function changePage(page) {
     loadUsers();
 }
 
+function changePage(page) {
+    currentPage = page;
+    loadUsers();
+}
+
 // Function to delete user
 async function deleteUser(id) {
     if (!confirm('Are you sure you want to delete this user?')) {
@@ -210,12 +217,15 @@ async function deleteUser(id) {
         
         const data = await response.json();
         
-        if (data.message === "User was deleted.") {
+        if (data.status === 200 && data.message === "User was deleted.") {
             currentPage = 1; // Reset to first page
             loadUsers();
+        } else {
+            alert(data.message || 'Failed to delete user');
         }
     } catch (error) {
         console.error('Error:', error);
+        alert('An error occurred while deleting the user');
     }
 }
 
@@ -238,7 +248,7 @@ document.getElementById('addUserForm').addEventListener('submit', async function
         
         const data = await response.json();
         
-        if (data.message === "User was created.") {
+        if (data.status === 201 && data.message === "User was created.") {
             document.getElementById('error').style.display = 'none';
             document.getElementById('success').style.display = 'block';
             this.reset();

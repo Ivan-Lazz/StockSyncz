@@ -17,8 +17,10 @@ try {
         $stmt->execute();
         
         $parties = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        http_response_code(200);
+        $status_code = 200;
+        http_response_code($status_code);
         echo json_encode([
+            'status' => $status_code,
             'success' => true,
             'data' => $parties
         ]);
@@ -66,8 +68,10 @@ try {
     $total_stmt->execute();
     $total_amount = $total_stmt->fetch(PDO::FETCH_ASSOC)['total_amount'];
 
-    http_response_code(200);
+    $status_code = 200;
+    http_response_code($status_code);
     echo json_encode([
+        'status' => $status_code,
         'success' => true,
         'data' => $purchases,
         'pagination' => [
@@ -81,9 +85,20 @@ try {
         ]
     ]);
 
-} catch (Exception $e) {
-    http_response_code(500);
+} catch (PDOException $e) {
+    $status_code = 500;
+    http_response_code($status_code);
     echo json_encode([
+        'status' => $status_code,
+        'success' => false,
+        'message' => "Database error: Unable to fetch party report.",
+        'error' => $e->getMessage()
+    ]);
+} catch (Exception $e) {
+    $status_code = 400;
+    http_response_code($status_code);
+    echo json_encode([
+        'status' => $status_code,
         'success' => false,
         'message' => "Error fetching report: " . $e->getMessage()
     ]);

@@ -14,18 +14,32 @@ $company = new Company($db);
 
 $data = json_decode(file_get_contents("php://input"));
 
+$data = json_decode(file_get_contents("php://input"));
+
 if (!empty($data->id) && !empty($data->companyname)) {
     $company->id = $data->id;
     $company->companyname = $data->companyname;
 
     if ($company->update()) {
-        http_response_code(200);
-        echo json_encode(array("message" => "Company was updated."));
+        $status_code = 200;
+        http_response_code($status_code);
+        echo json_encode(array(
+            "status" => $status_code,
+            "message" => "Company was updated."
+        ));
     } else {
-        http_response_code(503);
-        echo json_encode(array("message" => "Company already exists or unable to update company."));
+        $status_code = 503;
+        http_response_code($status_code);
+        echo json_encode(array(
+            "status" => $status_code,
+            "message" => "Company already exists or unable to update company."
+        ));
     }
 } else {
-    http_response_code(400);
-    echo json_encode(array("message" => "Unable to update company. Data is incomplete."));
+    $status_code = 400;
+    http_response_code($status_code);
+    echo json_encode(array(
+        "status" => $status_code,
+        "message" => "Unable to update company. Data is incomplete."
+    ));
 }

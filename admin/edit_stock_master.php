@@ -92,8 +92,6 @@ $id = $_GET['id'];
 </div>
 
 <script>
-// Add this JavaScript to edit_stock_master.php
-
 document.addEventListener('DOMContentLoaded', function() {
     loadStockDetails();
     
@@ -104,7 +102,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 async function loadStockDetails() {
-    const stockId = <?php echo json_encode($id); ?>;
+    const stockId = document.getElementById('stock_id').value;
     console.log('Loading stock details for ID:', stockId);
 
     try {
@@ -112,17 +110,27 @@ async function loadStockDetails() {
         const result = await response.json();
         console.log('API Response:', result);
         
-        if (!result.success) {
+        // Check both success flag and status code
+        if (!result.success || result.status !== 200) {
             throw new Error(result.message || 'Failed to load stock details');
         }
 
-        // Populate form fields
+        // Populate form fields from the data object in the response
         const stock = result.data;
-        Object.keys(stock).forEach(key => {
-            const element = document.getElementById(key);
-            if (element) {
-                element.value = stock[key];
-                console.log(`Setting ${key} to ${stock[key]}`);
+        const fields = [
+            'product_company',
+            'product_name', 
+            'product_unit',
+            'packing_size',
+            'product_qty',
+            'product_selling_price'
+        ];
+
+        fields.forEach(field => {
+            const element = document.getElementById(field);
+            if (element && stock[field] !== undefined) {
+                element.value = stock[field];
+                console.log(`Setting ${field} to ${stock[field]}`);
             }
         });
 
@@ -134,29 +142,39 @@ async function loadStockDetails() {
 
 async function updateStockPrice() {
     try {
-        const stockId = <?php echo json_encode($id); ?>;
+        const stockId = document.getElementById('stock_id').value;
         const newPrice = document.getElementById('product_selling_price').value;
 
         if (!newPrice) {
             throw new Error('Please enter a selling price');
         }
 
+        if (isNaN(newPrice) || parseFloat(newPrice) <= 0) {
+            throw new Error('Please enter a valid positive price');
+        }
+
         const response = await fetch('http://localhost/imsfin/IMS_API/api/stock/update_stock_price.php', {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
             },
             body: JSON.stringify({
                 id: stockId,
-                product_selling_price: newPrice
+                product_selling_price: parseFloat(newPrice)
             })
         });
 
         const result = await response.json();
         console.log('Update response:', result);
         
-        if (result.success) {
+        // Check both success flag and status code
+        if (result.success && result.status === 200) {
             document.getElementById('success').style.display = 'block';
+            // Scroll to show the success message
+            document.getElementById('success').scrollIntoView({ behavior: 'smooth' });
+            
+            // Redirect after showing the success message
             setTimeout(() => {
                 window.location.href = 'stock_master.php';
             }, 1500);

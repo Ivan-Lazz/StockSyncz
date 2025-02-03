@@ -19,13 +19,28 @@ if (!empty($data->id) && !empty($data->unit)) {
     $unit->unit = $data->unit;
 
     if ($unit->update()) {
-        http_response_code(200);
-        echo json_encode(array("message" => "Unit was updated."));
+        $status_code = 200;
+        http_response_code($status_code);
+        echo json_encode([
+            "status" => $status_code,
+            "success" => true,
+            "message" => "Unit was updated."
+        ]);
     } else {
-        http_response_code(503);
-        echo json_encode(array("message" => "Unit already exists or unable to update unit."));
+        $status_code = 503;
+        http_response_code($status_code);
+        echo json_encode([
+            "status" => $status_code,
+            "success" => false,
+            "message" => "Unit already exists or unable to update unit."
+        ]);
     }
 } else {
-    http_response_code(400);
-    echo json_encode(array("message" => "Unable to update unit. Data is incomplete."));
+    $status_code = 400;
+    http_response_code($status_code);
+    echo json_encode([
+        "status" => $status_code,
+        "success" => false,
+        "message" => "Unable to update unit. Data is incomplete."
+    ]);
 }

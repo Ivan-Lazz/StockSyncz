@@ -22,13 +22,25 @@ try {
                 "companyname" => $row['companyname']
             ));
         }
-        http_response_code(200);
-        echo json_encode($companies_arr);
+        $status_code = 200;
+        http_response_code($status_code);
+        echo json_encode(array(
+            "status" => $status_code,
+            "data" => $companies_arr
+        ));
     } else {
-        http_response_code(404);
-        echo json_encode(array("message" => "No companies found."));
+        $status_code = 404;
+        http_response_code($status_code);
+        echo json_encode(array(
+            "status" => $status_code,
+            "message" => "No companies found."
+        ));
     }
 } catch(PDOException $e) {
-    http_response_code(503);
-    echo json_encode(array("message" => "Unable to get companies."));
+    $status_code = 503;
+    http_response_code($status_code);
+    echo json_encode(array(
+        "status" => $status_code,
+        "message" => "Unable to get companies."
+    ));
 }

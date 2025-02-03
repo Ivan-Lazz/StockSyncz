@@ -139,8 +139,8 @@ async function loadReport() {
         const response = await fetch(url);
         const result = await response.json();
 
-        if (!result.success) {
-            throw new Error(result.message || 'Failed to load report');
+        if (result.status !== 200 || !result.success) {
+            throw new Error(result.message || result.error || 'Failed to load report');
         }
 
         updateSummary(result.summary);
@@ -148,7 +148,22 @@ async function loadReport() {
         updatePagination(result.pagination);
 
     } catch (error) {
-        showError(error.message);
+        // Handle specific status codes
+        if (error.response) {
+            const errorData = await error.response.json();
+            switch (errorData.status) {
+                case 500:
+                    showError('Database error occurred. Please try again later.');
+                    break;
+                case 400:
+                    showError(errorData.message || 'Invalid request. Please check your inputs.');
+                    break;
+                default:
+                    showError(errorData.message || 'An error occurred while loading the report.');
+            }
+        } else {
+            showError(error.message);
+        }
         clearReport();
     } finally {
         hideSpinner();

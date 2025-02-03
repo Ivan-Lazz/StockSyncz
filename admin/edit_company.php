@@ -56,55 +56,82 @@ $id = $_GET['id'];
 
 <script>
 // Load company data
-function loadCompanyData() {
-    fetch(`http://localhost/imsfin/IMS_API/api/company/read_single_company.php?id=<?php echo $id; ?>`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.companyname) {
-                document.getElementById('companyname').value = data.companyname;
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error loading company data');
-        });
-}
-
-// Form submission
-document.getElementById('editCompanyForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const companyData = {
-        id: <?php echo $id; ?>,
-        companyname: document.getElementById('companyname').value
-    };
-    
-    fetch('http://localhost/imsfin/IMS_API/api/company/update_company.php', {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(companyData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.message === "Company was updated.") {
-            document.getElementById('error').style.display = 'none';
-            document.getElementById('success').style.display = 'block';
+async function loadCompanyData() {
+    try {
+        const response = await fetch(`http://localhost/imsfin/IMS_API/api/company/read_single_company.php?id=<?php echo $id; ?>`);
+        const data = await response.json();
+        
+        if (data.status === 200 && data.data) {
+            document.getElementById('companyname').value = data.data.companyname;
+        } else if (data.status === 404) {
+            showErrorMessage('Company not found');
             setTimeout(() => {
                 window.location.href = 'add_new_company.php';
             }, 1500);
         } else {
-            document.getElementById('success').style.display = 'none';
-            document.getElementById('errorMessage').textContent = data.message;
-            document.getElementById('error').style.display = 'block';
+            throw new Error(data.message || 'Error loading company data');
         }
-    })
-    .catch(error => {
+    } catch (error) {
         console.error('Error:', error);
-        alert('Error updating company. Please try again.');
-    });
+        showErrorMessage('Error loading company data');
+        setTimeout(() => {
+            window.location.href = 'add_new_company.php';
+        }, 1500);
+    }
+}
+// Form submission
+document.getElementById('editCompanyForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const companyData = {
+        id: <?php echo $id; ?>,
+        companyname: document.getElementById('companyname').value.trim()
+    };
+    
+    if (!companyData.companyname) {
+        showErrorMessage('Company name is required');
+        return;
+    }
+    
+    try {
+        const response = await fetch('http://localhost/imsfin/IMS_API/api/company/update_company.php', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(companyData)
+        });
+
+        const data = await response.json();
+        
+        if (data.status === 200) {
+            document.getElementById('error').style.display = 'none';
+            showSuccessMessage('Company updated successfully!');
+            setTimeout(() => {
+                window.location.href = 'add_new_company.php';
+            }, 1500);
+        } else if (data.status === 503) {
+            showErrorMessage('Company already exists or unable to update company');
+        } else {
+            showErrorMessage(data.message || 'Error updating company');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showErrorMessage('Error updating company. Please try again.');
+    }
 });
+
+function showSuccessMessage(message) {
+    const successDiv = document.getElementById('success');
+    successDiv.style.display = 'block';
+    successDiv.querySelector('strong').nextSibling.textContent = ' ' + message;
+}
+
+function showErrorMessage(message) {
+    const errorDiv = document.getElementById('error');
+    errorDiv.style.display = 'block';
+    document.getElementById('errorMessage').textContent = message;
+}
 
 // Load company data when page loads
 document.addEventListener('DOMContentLoaded', loadCompanyData);

@@ -18,13 +18,25 @@ if (!empty($data->companyname)) {
     $company->companyname = $data->companyname;
 
     if ($company->create()) {
-        http_response_code(201);
-        echo json_encode(array("message" => "Company was created."));
+        $status_code = 201;
+        http_response_code($status_code);
+        echo json_encode(array(
+            "status" => $status_code,
+            "message" => "Company was created."
+        ));
     } else {
-        http_response_code(503);
-        echo json_encode(array("message" => "Company already exists or unable to create company."));
+        $status_code = 503;
+        http_response_code($status_code);
+        echo json_encode(array(
+            "status" => $status_code,
+            "message" => "Company already exists or unable to create company."
+        ));
     }
 } else {
-    http_response_code(400);
-    echo json_encode(array("message" => "Unable to create company. Data is incomplete."));
+    $status_code = 400;
+    http_response_code($status_code);
+    echo json_encode(array(
+        "status" => $status_code,
+        "message" => "Unable to create company. Data is incomplete."
+    ));
 }

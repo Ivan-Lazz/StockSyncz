@@ -34,8 +34,10 @@ if (!empty($data->username) && !empty($data->password)) {
             $_SESSION['admin'] = $user->username;
             
             // Return success response with user data
-            http_response_code(200);
+            $status_code = 200;
+            http_response_code($status_code);
             echo json_encode(array(
+                "status" => $status_code,
                 "message" => "Login successful",
                 "user" => array(
                     "username" => $row['username'],
@@ -45,14 +47,26 @@ if (!empty($data->username) && !empty($data->password)) {
                 )
             ));
         } else {
-            http_response_code(401);
-            echo json_encode(array("message" => "Invalid credentials"));
+            $status_code = 401;
+            http_response_code($status_code);
+            echo json_encode(array(
+                "status" => $status_code,
+                "message" => "Invalid credentials"
+            ));
         }
     } else {
-        http_response_code(401);
-        echo json_encode(array("message" => "Invalid credentials"));
+        $status_code = 401;
+        http_response_code($status_code);
+        echo json_encode(array(
+            "status" => $status_code,
+            "message" => "Invalid credentials"
+        ));
     }
 } else {
-    http_response_code(400);
-    echo json_encode(array("message" => "Unable to login. Data is incomplete."));
+    $status_code = 400;
+    http_response_code($status_code);
+    echo json_encode(array(
+        "status" => $status_code,
+        "message" => "Unable to login. Data is incomplete."
+    ));
 }
