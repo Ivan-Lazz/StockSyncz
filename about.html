@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Development Team</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --background-color: #f8fafc;
+            --text-color: #334155;
+            --card-background: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .team-member {
+            background: var(--card-background);
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .team-member:hover {
+            transform: translateY(-5px);
+        }
+
+        .profile-img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            display: block;
+            background: var(--background-color);
+        }
+
+        .team-member h2 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .role {
+            color: #64748b;
+            text-align: center;
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+
+        .bio {
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+
+        .skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+
+        .skill-tag {
+            background: var(--background-color);
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .team-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Meet Our Development Team</h1>
+            <p>Passionate developers building the future of technology</p>
+        </header>
+
+        <div class="team-grid">
+            <div class="team-member">
+                <img src="/api/placeholder/150/150" alt="Sarah Chen" class="profile-img">
+                <h2>Sarah Chen</h2>
+                <p class="role">Lead Full Stack Developer</p>
+                <p class="bio">With over 8 years of experience in web development, Sarah leads our technical initiatives and mentors junior developers.</p>
+                <div class="skills">
+                    <span class="skill-tag">React</span>
+                    <span class="skill-tag">Node.js</span>
+                    <span class="skill-tag">AWS</span>
+                </div>
+            </div>
+
+            <div class="team-member">
+                <img src="/api/placeholder/150/150" alt="Marcus Rodriguez" class="profile-img">
+                <h2>Marcus Rodriguez</h2>
+                <p class="role">Frontend Developer</p>
+                <p class="bio">Marcus specializes in creating beautiful, responsive user interfaces with a focus on accessibility.</p>
+                <div class="skills">
+                    <span class="skill-tag">Vue.js</span>
+                    <span class="skill-tag">CSS</span>
+                    <span class="skill-tag">UX</span>
+                </div>
+            </div>
+
+            <div class="team-member">
+                <img src="/api/placeholder/150/150" alt="Priya Patel" class="profile-img">
+                <h2>Priya Patel</h2>
+                <p class="role">Backend Developer</p>
+                <p class="bio">Priya is our database expert, focusing on building scalable and efficient server-side solutions.</p>
+                <div class="skills">
+                    <span class="skill-tag">Python</span>
+                    <span class="skill-tag">PostgreSQL</span>
+                    <span class="skill-tag">Docker</span>
+                </div>
+            </div>
+
+            <div class="team-member">
+                <img src="/api/placeholder/150/150" alt="James Wilson" class="profile-img">
+                <h2>James Wilson</h2>
+                <p class="role">DevOps Engineer</p>
+                <p class="bio">James ensures our infrastructure runs smoothly and implements CI/CD pipelines for efficient deployment.</p>
+                <div class="skills">
+                    <span class="skill-tag">Kubernetes</span>
+                    <span class="skill-tag">Jenkins</span>
+                    <span class="skill-tag">Terraform</span>
+                </div>
+            </div>
+
+            <div class="team-member">
+                <img src="/api/placeholder/150/150" alt="Emma Anderson" class="profile-img">
+                <h2>Emma Anderson</h2>
+                <p class="role">Mobile Developer</p>
+                <p class="bio">Emma leads our mobile development efforts, creating cross-platform applications with React Native.</p>
+                <div class="skills">
+                    <span class="skill-tag">React Native</span>
+                    <span class="skill-tag">iOS</span>
+                    <span class="skill-tag">Android</span>
+                </div>
+            </div>
+
+            <div class="team-member">
+                <img src="/api/placeholder/150/150" alt="David Kim" class="profile-img">
+                <h2>David Kim</h2>
+                <p class="role">Security Engineer</p>
+                <p class="bio">David ensures our applications are secure and implements best practices for data protection.</p>
+                <div class="skills">
+                    <span class="skill-tag">Security</span>
+                    <span class="skill-tag">Pentesting</span>
+                    <span class="skill-tag">OAuth</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
