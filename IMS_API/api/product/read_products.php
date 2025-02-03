@@ -45,31 +45,36 @@ try {
         array_push($products_arr, $product_item);
     }
 
-    // Prepare response
-    $response = array(
+    $status_code = 200;
+    http_response_code($status_code);
+    echo json_encode([
+        "status" => $status_code,
         "success" => true,
-        "records" => $products_arr,
-        "pagination" => array(
-            "current_page" => $page,
-            "total_pages" => $total_pages,
-            "records_per_page" => $records_per_page,
-            "total_records" => $total_records
-        )
-    );
-
-    http_response_code(200);
-    echo json_encode($response);
+        "data" => [
+            "records" => $products_arr,
+            "pagination" => [
+                "current_page" => $page,
+                "total_pages" => $total_pages,
+                "records_per_page" => $records_per_page,
+                "total_records" => $total_records
+            ]
+        ]
+    ]);
 
 } catch(PDOException $e) {
-    http_response_code(500);
-    echo json_encode(array(
+    $status_code = 500;
+    http_response_code($status_code);
+    echo json_encode([
+        "status" => $status_code,
         "success" => false,
         "message" => "Database Error: " . $e->getMessage()
-    ));
+    ]);
 } catch(Exception $e) {
-    http_response_code(500);
-    echo json_encode(array(
+    $status_code = 500;
+    http_response_code($status_code);
+    echo json_encode([
+        "status" => $status_code,
         "success" => false,
         "message" => "Error: " . $e->getMessage()
-    ));
+    ]);
 }

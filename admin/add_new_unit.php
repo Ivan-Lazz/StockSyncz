@@ -167,8 +167,6 @@ async function loadUnits() {
         console.log('Fetching from URL:', url);
         
         const response = await fetch(url);
-        console.log('Response status:', response.status);
-        
         const data = await response.json();
         console.log('Received data:', data);
         
@@ -180,35 +178,42 @@ async function loadUnits() {
         
         tbody.innerHTML = '';
         
-        // Handle both old and new API response formats
-        const units = Array.isArray(data) ? data : (data.records || []);
-        
-        if (units.length > 0) {
-            units.forEach(unit => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${unit.id}</td>
-                        <td>${unit.unit}</td>
-                        <td><center><a href="edit_unit.php?id=${unit.id}" class="text-success">Edit</a></center></td>
-                        <td><center><a href="#" onclick="deleteUnit(${unit.id})" class="text-error">Delete</a></center></td>
-                    </tr>
-                `;
-            });
+        if (data.status === 200 && data.success && data.data && Array.isArray(data.data.records)) {
+            const units = data.data.records;
+            
+            if (units.length > 0) {
+                units.forEach(unit => {
+                    // Convert values to string and provide defaults
+                    const id = unit.id ? String(unit.id) : '';
+                    const unitName = unit.unit ? String(unit.unit) : '';
+                    
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${escapeHtml(id)}</td>
+                            <td>${escapeHtml(unitName)}</td>
+                            <td><center><a href="edit_unit.php?id=${escapeHtml(id)}" class="text-success">Edit</a></center></td>
+                            <td><center><a href="#" onclick="deleteUnit('${escapeHtml(id)}')" class="text-error">Delete</a></center></td>
+                        </tr>
+                    `;
+                });
 
-            // Add pagination if available
-            if (data.pagination && data.pagination.total_pages > 1) {
-                renderPagination(data.pagination);
+                if (data.data.pagination) {
+                    renderPagination(data.data.pagination);
+                } else {
+                    document.getElementById('paginationContainer').innerHTML = '';
+                }
             } else {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center">No units found</td></tr>';
                 document.getElementById('paginationContainer').innerHTML = '';
             }
         } else {
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center">No units found</td></tr>';
-            document.getElementById('paginationContainer').innerHTML = '';
+            throw new Error(data.message || 'Failed to load units');
         }
     } catch (error) {
         console.error('Error loading units:', error);
         document.getElementById('unitTableBody').innerHTML = 
             '<tr><td colspan="4" class="text-center text-error">Error loading units. Please try again.</td></tr>';
+        document.getElementById('paginationContainer').innerHTML = '';
     } finally {
         spinner.style.display = 'none';
     }
@@ -265,6 +270,11 @@ function changePage(page) {
 
 // Delete unit
 async function deleteUnit(id) {
+    if (!id) {
+        showErrorMessage('Invalid unit ID');
+        return;
+    }
+
     if (!confirm('Are you sure you want to delete this unit?')) {
         return;
     }
@@ -275,15 +285,15 @@ async function deleteUnit(id) {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ id: id })
+            body: JSON.stringify({ id: String(id) })
         });
         
         const data = await response.json();
         
-        if (data.message === "Unit was deleted.") {
+        if (data.success && data.status === 200) {
+            showSuccessMessage('Unit deleted successfully!');
             currentPage = 1; // Reset to first page
             loadUnits();
-            showSuccessMessage('Unit deleted successfully!');
         } else {
             showErrorMessage(data.message || 'Error deleting unit');
         }
@@ -317,7 +327,7 @@ document.getElementById('addUnitForm').addEventListener('submit', async function
         
         const data = await response.json();
         
-        if (data.message === "Unit was created.") {
+        if (data.success && data.status === 201) {
             showSuccessMessage('Unit added successfully!');
             this.reset();
             currentPage = 1; // Reset to first page
@@ -351,8 +361,13 @@ function showErrorMessage(message) {
 }
 
 function escapeHtml(unsafe) {
-    if (!unsafe) return '';
-    return unsafe
+    // Handle null, undefined, or non-string values
+    if (unsafe === null || unsafe === undefined) return '';
+    
+    // Convert to string if it's not already a string
+    const str = String(unsafe);
+    
+    return str
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")

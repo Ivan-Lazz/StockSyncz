@@ -8,8 +8,10 @@ include_once '../../../config/database.php';
 
 session_start();
 if(!isset($_SESSION['admin'])) {
-    http_response_code(401);
+    $status_code = 401;
+    http_response_code($status_code);
     echo json_encode([
+        "status" => $status_code,
         "success" => false,
         "message" => "Unauthorized access"
     ]);
@@ -24,8 +26,10 @@ try {
     $data = json_decode(file_get_contents("php://input"));
 
     if (!isset($data->id)) {
-        http_response_code(400);
+        $status_code = 400;
+        http_response_code($status_code);
         echo json_encode([
+            "status" => $status_code,
             "success" => false,
             "message" => "Missing billing detail ID"
         ]);
@@ -113,8 +117,10 @@ try {
     // Commit transaction
     $db->commit();
 
-    http_response_code(200);
+    $status_code = 200;
+    http_response_code($status_code);
     echo json_encode([
+        "status" => $status_code,
         "success" => true,
         "message" => "Product return processed successfully",
         "data" => [
@@ -127,8 +133,10 @@ try {
         $db->rollBack();
     }
     
-    http_response_code(500);
+    $status_code = 500;
+    http_response_code($status_code);
     echo json_encode([
+        "status" => $status_code,
         "success" => false,
         "message" => $e->getMessage()
     ]);

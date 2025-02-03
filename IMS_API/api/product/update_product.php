@@ -21,23 +21,36 @@ if (!empty($data->id) && !empty($data->company_name) &&
     !empty($data->product_name) && !empty($data->unit) && 
     !empty($data->packing_size)) {
     
-    // Set product properties
     $product->id = $data->id;
     $product->company_name = $data->company_name;
     $product->product_name = $data->product_name;
     $product->unit = $data->unit;
     $product->packing_size = $data->packing_size;
 
-    // Update the product
     if ($product->update()) {
-        http_response_code(200);
-        echo json_encode(array("message" => "Product was updated."));
+        $status_code = 200;
+        http_response_code($status_code);
+        echo json_encode([
+            "status" => $status_code,
+            "success" => true,
+            "message" => "Product was updated."
+        ]);
     } else {
-        http_response_code(503);
-        echo json_encode(array("message" => "Product already exists or unable to update product."));
+        $status_code = 503;
+        http_response_code($status_code);
+        echo json_encode([
+            "status" => $status_code,
+            "success" => false,
+            "message" => "Product already exists or unable to update product."
+        ]);
     }
 } else {
-    http_response_code(400);
-    echo json_encode(array("message" => "Unable to update product. Data is incomplete."));
+    $status_code = 400;
+    http_response_code($status_code);
+    echo json_encode([
+        "status" => $status_code,
+        "success" => false,
+        "message" => "Unable to update product. Data is incomplete."
+    ]);
 }
 ?>

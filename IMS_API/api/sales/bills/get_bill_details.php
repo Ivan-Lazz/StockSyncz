@@ -44,21 +44,26 @@ try {
         $total += (floatval($detail['price']) * floatval($detail['qty']));
     }
 
-    http_response_code(200);
-    echo json_encode(array(
+    $status_code = 200;
+    http_response_code($status_code);
+    echo json_encode([
+        "status" => $status_code,
         "success" => true,
-        "header" => $header,
-        "details" => $details,
-        "total" => $total
-    ));
+        "data" => [
+            "header" => $header,
+            "details" => $details,
+            "total" => $total
+        ]
+    ]);
 
 } catch (Exception $e) {
-    error_log("Bill Details Error: " . $e->getMessage());
-    http_response_code(503);
-    echo json_encode(array(
+    $status_code = 503;
+    http_response_code($status_code);
+    echo json_encode([
+        "status" => $status_code,
         "success" => false,
         "message" => "Unable to fetch bill details.",
         "error" => $e->getMessage()
-    ));
+    ]);
 }
 ?>

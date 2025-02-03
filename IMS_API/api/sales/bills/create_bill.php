@@ -61,17 +61,19 @@ try {
     unset($_SESSION['cart']);
     session_write_close();
 
-    echo json_encode(array(
+    echo json_encode([
+        "status" => 201,
         "success" => true,
         "message" => "Bill generated successfully",
-        "bill_id" => $bill_id
-    ));
+        "data" => ["bill_id" => $bill_id]
+    ]);
 
 } catch (Exception $e) {
-    error_log('Bill creation error: ' . $e->getMessage());
-    http_response_code(400);
-    echo json_encode(array(
+    $status_code = 400;
+    http_response_code($status_code);
+    echo json_encode([
+        "status" => $status_code,
         "success" => false,
         "message" => $e->getMessage()
-    ));
+    ]);
 }

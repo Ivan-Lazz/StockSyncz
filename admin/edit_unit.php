@@ -55,55 +55,101 @@ $id = $_GET['id'];
 </div>
 
 <script>
+// Utility functions
+function showSuccessMessage(message) {
+    const successDiv = document.getElementById('success');
+    successDiv.style.display = 'block';
+    successDiv.querySelector('strong').nextSibling.textContent = ' ' + message;
+    setTimeout(() => {
+        successDiv.style.display = 'none';
+    }, 3000);
+}
+
+function showErrorMessage(message) {
+    const errorDiv = document.getElementById('error');
+    document.getElementById('errorMessage').textContent = message;
+    errorDiv.style.display = 'block';
+    setTimeout(() => {
+        errorDiv.style.display = 'none';
+    }, 3000);
+}
+
+function escapeHtml(unsafe) {
+    if (!unsafe) return '';
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 // Load unit data
-function loadUnitData() {
-    fetch(`http://localhost/imsfin/IMS_API/api/unit/read_single_unit.php?id=<?php echo $id; ?>`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.unit) {
-                document.getElementById('unitname').value = data.unit;
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error loading unit data');
-        });
+async function loadUnitData() {
+    try {
+        const response = await fetch(`http://localhost/imsfin/IMS_API/api/unit/read_single_unit.php?id=<?php echo $id; ?>`);
+        const data = await response.json();
+        
+        // Check for successful response
+        if (!data.success || data.status !== 200) {
+            throw new Error(data.message || 'Failed to load unit data');
+        }
+
+        // Check if data exists and has the unit property
+        if (data.data && data.data.unit) {
+            document.getElementById('unitname').value = data.data.unit;
+        } else {
+            throw new Error('Unit data not found');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showErrorMessage(error.message || 'Error loading unit data');
+    }
 }
 
 // Form submission
-document.getElementById('editUnitForm').addEventListener('submit', function(e) {
+document.getElementById('editUnitForm').addEventListener('submit', async function(e) {
     e.preventDefault();
+    
+    const unitName = document.getElementById('unitname').value.trim();
+    
+    if (!unitName) {
+        showErrorMessage('Unit name is required');
+        return;
+    }
     
     const unitData = {
         id: <?php echo $id; ?>,
-        unit: document.getElementById('unitname').value
+        unit: unitName
     };
     
-    fetch('http://localhost/imsfin/IMS_API/api/unit/update_unit.php', {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(unitData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.message === "Unit was updated.") {
+    try {
+        const response = await fetch('http://localhost/imsfin/IMS_API/api/unit/update_unit.php', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(unitData)
+        });
+        
+        const data = await response.json();
+        
+        // Check response status and success flag
+        if (data.success && data.status === 200) {
             document.getElementById('error').style.display = 'none';
-            document.getElementById('success').style.display = 'block';
+            showSuccessMessage('Unit updated successfully!');
+            
+            // Redirect after showing success message
             setTimeout(() => {
                 window.location.href = 'add_new_unit.php';
             }, 1500);
         } else {
-            document.getElementById('success').style.display = 'none';
-            document.getElementById('errorMessage').textContent = data.message;
-            document.getElementById('error').style.display = 'block';
+            throw new Error(data.message || 'Error updating unit');
         }
-    })
-    .catch(error => {
+    } catch (error) {
         console.error('Error:', error);
-        alert('Error updating unit. Please try again.');
-    });
+        showErrorMessage(error.message || 'Error updating unit. Please try again.');
+    }
 });
 
 // Load unit data when page loads

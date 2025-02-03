@@ -62,21 +62,27 @@ try {
     $stmt->execute();
     $bills = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    http_response_code(200);
+    $status_code = 200;
+    http_response_code($status_code);
     echo json_encode([
+        "status" => $status_code,
         "success" => true,
-        "data" => $bills,
-        "pagination" => [
-            "page" => $page,
-            "total_pages" => $total_pages,
-            "records_per_page" => $records_per_page,
-            "total_records" => $total_rows
+        "data" => [
+            "records" => $bills,
+            "pagination" => [
+                "page" => $page,
+                "total_pages" => $total_pages,
+                "records_per_page" => $records_per_page,
+                "total_records" => $total_rows
+            ]
         ]
     ]);
 
 } catch (Exception $e) {
-    http_response_code(503);
+    $status_code = 503;
+    http_response_code($status_code);
     echo json_encode([
+        "status" => $status_code,
         "success" => false,
         "message" => "Unable to fetch bills.",
         "error" => $e->getMessage()

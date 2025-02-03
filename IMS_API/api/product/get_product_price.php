@@ -14,6 +14,8 @@ try {
 
     if (!isset($_GET['company_name']) || !isset($_GET['product_name']) || 
         !isset($_GET['unit']) || !isset($_GET['packing_size'])) {
+        $status_code = 400;
+        http_response_code($status_code);
         throw new Exception("Missing required parameters");
     }
 
@@ -25,14 +27,21 @@ try {
     );
 
     $price = $sales->getProductPrice($product_data);
-
-    http_response_code(200);
-    echo json_encode(array("price" => $price));
+    $status_code = 200;
+    http_response_code($status_code);
+    echo json_encode([
+        "status" => $status_code,
+        "success" => true,
+        "data" => ["price" => $price]
+    ]);
 
 } catch (Exception $e) {
-    http_response_code(400);
-    echo json_encode(array(
+    $status_code = isset($status_code) ? $status_code : 400;
+    http_response_code($status_code);
+    echo json_encode([
+        "status" => $status_code,
+        "success" => false,
         "message" => "Unable to get product price",
         "error" => $e->getMessage()
-    ));
+    ]);
 }

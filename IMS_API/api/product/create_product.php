@@ -23,13 +23,28 @@ if (!empty($data->company_name) && !empty($data->product_name) &&
     $product->packing_size = $data->packing_size;
 
     if ($product->create()) {
-        http_response_code(201);
-        echo json_encode(array("message" => "Product was created."));
+        $status_code = 201;
+        http_response_code($status_code);
+        echo json_encode([
+            "status" => $status_code,
+            "success" => true,
+            "message" => "Product was created."
+        ]);
     } else {
-        http_response_code(503);
-        echo json_encode(array("message" => "Product already exists or unable to create product."));
+        $status_code = 503;
+        http_response_code($status_code);
+        echo json_encode([
+            "status" => $status_code,
+            "success" => false,
+            "message" => "Product already exists or unable to create product."
+        ]);
     }
 } else {
-    http_response_code(400);
-    echo json_encode(array("message" => "Unable to create product. Data is incomplete."));
+    $status_code = 400;
+    http_response_code($status_code);
+    echo json_encode([
+        "status" => $status_code,
+        "success" => false,
+        "message" => "Unable to create product. Data is incomplete."
+    ]);
 }

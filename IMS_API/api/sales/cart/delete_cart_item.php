@@ -15,7 +15,6 @@ try {
     }
 
     if (isset($_SESSION['cart'][$data->session_id])) {
-        // Clear the item but maintain array structure
         $_SESSION['cart'][$data->session_id] = array(
             "company_name" => "",
             "product_name" => "",
@@ -25,16 +24,24 @@ try {
             "qty" => ""
         );
 
-        http_response_code(200);
-        echo json_encode(array("message" => "Item removed from cart"));
+        $status_code = 200;
+        http_response_code($status_code);
+        echo json_encode([
+            "status" => $status_code,
+            "success" => true,
+            "message" => "Item removed from cart"
+        ]);
     } else {
         throw new Exception("Item not found in cart");
     }
 
 } catch (Exception $e) {
-    http_response_code(400);
-    echo json_encode(array(
+    $status_code = 400;
+    http_response_code($status_code);
+    echo json_encode([
+        "status" => $status_code,
+        "success" => false,
         "message" => "Unable to delete item",
         "error" => $e->getMessage()
-    ));
+    ]);
 }

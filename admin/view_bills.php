@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
 async function loadBills(useFilters = false) {
     showSpinner();
     try {
-        let url = new URL('http://localhost/imsfin/IMS_API/api/sales/bills/get_bills.php', window.location.origin);
+        let url = new URL('http://localhost/imsfin/IMS_API/api/sales/bills/get_bills.php', window.location.href);
         url.searchParams.append('page', currentPage);
         url.searchParams.append('limit', recordsPerPage);
         
@@ -99,8 +99,8 @@ async function loadBills(useFilters = false) {
             throw new Error(result.message || 'Failed to load bills');
         }
 
-        displayBills(result.data);
-        updatePagination(result.pagination);
+        displayBills(result.data.records);
+        updatePagination(result.data.pagination);
     } catch (error) {
         showError('Error loading bills: ' + error.message);
     } finally {
@@ -163,13 +163,14 @@ function displayBills(bills) {
 
 function updatePagination(pagination) {
     totalPages = pagination.total_pages;
+    currentPage = pagination.page;
     const paginationContainer = document.getElementById('pagination');
     
     let html = '<ul class="pagination">';
     
     // Previous button
     html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
-        <a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Previous</a>
+        <a class="page-link" href="#" onclick="changePage(${currentPage - 1}); return false;">Previous</a>
     </li>`;
 
     // Page numbers
@@ -180,7 +181,7 @@ function updatePagination(pagination) {
             (i >= currentPage - 2 && i <= currentPage + 2) // Pages around current page
         ) {
             html += `<li class="page-item ${i === currentPage ? 'active' : ''}">
-                <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+                <a class="page-link" href="#" onclick="changePage(${i}); return false;">${i}</a>
             </li>`;
         } else if (
             i === currentPage - 3 ||
@@ -192,7 +193,7 @@ function updatePagination(pagination) {
 
     // Next button
     html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
-        <a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Next</a>
+        <a class="page-link" href="#" onclick="changePage(${currentPage + 1}); return false;">Next</a>
     </li>`;
 
     html += '</ul>';

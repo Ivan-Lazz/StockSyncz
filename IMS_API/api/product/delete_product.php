@@ -18,13 +18,28 @@ if (!empty($data->id)) {
     $product->id = $data->id;
 
     if ($product->delete()) {
-        http_response_code(200);
-        echo json_encode(array("message" => "Product was deleted."));
+        $status_code = 200;
+        http_response_code($status_code);
+        echo json_encode([
+            "status" => $status_code,
+            "success" => true,
+            "message" => "Product was deleted."
+        ]);
     } else {
-        http_response_code(503);
-        echo json_encode(array("message" => "Unable to delete product."));
+        $status_code = 503;
+        http_response_code($status_code);
+        echo json_encode([
+            "status" => $status_code,
+            "success" => false,
+            "message" => "Unable to delete product."
+        ]);
     }
 } else {
-    http_response_code(400);
-    echo json_encode(array("message" => "Unable to delete product. No ID provided."));
+    $status_code = 400;
+    http_response_code($status_code);
+    echo json_encode([
+        "status" => $status_code,
+        "success" => false,
+        "message" => "Unable to delete product. No ID provided."
+    ]);
 }

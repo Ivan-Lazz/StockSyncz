@@ -77,101 +77,151 @@ $id = $_GET['id'];
 </div>
 
 <script>
+// Utility functions
+function escapeHtml(unsafe) {
+    if (unsafe === null || unsafe === undefined) return '';
+    const str = String(unsafe);
+    return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function showSuccessMessage(message) {
+    const successDiv = document.getElementById('success');
+    successDiv.style.display = 'block';
+    successDiv.querySelector('strong').nextSibling.textContent = ' ' + escapeHtml(message);
+    setTimeout(() => {
+        successDiv.style.display = 'none';
+    }, 3000);
+}
+
+function showErrorMessage(message) {
+    const errorDiv = document.getElementById('error');
+    document.getElementById('errorMessage').textContent = escapeHtml(message);
+    errorDiv.style.display = 'block';
+    setTimeout(() => {
+        errorDiv.style.display = 'none';
+    }, 3000);
+}
+
 // Load companies for dropdown
-function loadCompanies() {
-    fetch('http://localhost/imsfin/IMS_API/api/company/get_companies.php')
-        .then(response => response.json())
-        .then(data => {
-            const select = document.getElementById('companySelect');
-            if (Array.isArray(data)) {
-                data.forEach(company => {
-                    const option = document.createElement('option');
-                    option.value = company.companyname;
-                    option.textContent = company.companyname;
-                    select.appendChild(option);
-                });
-                loadProductData(); // Load product data after companies are loaded
-            }
-        })
-        .catch(error => console.error('Error:', error));
+async function loadCompanies() {
+    try {
+        const response = await fetch('http://localhost/imsfin/IMS_API/api/company/get_companies.php');
+        const data = await response.json();
+        console.log('Companies API Response:', data);
+
+        const select = document.getElementById('companySelect');
+        select.innerHTML = '<option value="">Select Company</option>'; // Reset options
+
+        if (data.status === 200 && data.data && Array.isArray(data.data)) {
+            data.data.forEach(company => {
+                const companyName = company.companyname ? company.companyname : '';
+                const option = document.createElement('option');
+                option.value = escapeHtml(companyName);
+                option.textContent = escapeHtml(companyName);
+                select.appendChild(option);
+            });
+            await loadProductData(); // Load product data after companies are loaded
+        } else {
+            showErrorMessage('Error loading companies: ' + (data.message || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error loading companies:', error);
+        showErrorMessage('Error loading companies. Please try again.');
+    }
 }
 
 // Load units for dropdown
-function loadUnits() {
-    fetch('http://localhost/imsfin/IMS_API/api/unit/get_units.php')
-        .then(response => response.json())
-        .then(data => {
-            const select = document.getElementById('unitSelect');
-            if (Array.isArray(data)) {
-                data.forEach(unit => {
-                    const option = document.createElement('option');
-                    option.value = unit.unit;
-                    option.textContent = unit.unit;
-                    select.appendChild(option);
-                });
-            }
-        })
-        .catch(error => console.error('Error:', error));
+async function loadUnits() {
+    try {
+        const response = await fetch('http://localhost/imsfin/IMS_API/api/unit/get_units.php');
+        const data = await response.json();
+        console.log('Units API Response:', data);
+
+        const select = document.getElementById('unitSelect');
+        select.innerHTML = '<option value="">Select Unit</option>'; // Reset options
+
+        if (data.status === 200 && data.success && data.data && Array.isArray(data.data)) {
+            data.data.forEach(unit => {
+                const unitName = unit.unit ? unit.unit : '';
+                const option = document.createElement('option');
+                option.value = escapeHtml(unitName);
+                option.textContent = escapeHtml(unitName);
+                select.appendChild(option);
+            });
+        } else {
+            showErrorMessage('Error loading units: ' + (data.message || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error loading units:', error);
+        showErrorMessage('Error loading units. Please try again.');
+    }
 }
 
 // Load product data
-function loadProductData() {
-    fetch(`http://localhost/imsfin/IMS_API/api/product/read_single_product.php?id=<?php echo $id; ?>`)
-        .then(response => response.json())
-        .then(product => {
-            if (product) {
-                document.getElementById('companySelect').value = product.company_name;
-                document.getElementById('product_name').value = product.product_name;
-                document.getElementById('unitSelect').value = product.unit;
-                document.getElementById('packing_size').value = product.packing_size;
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error loading product data');
-        });
+async function loadProductData() {
+    try {
+        const productId = <?php echo json_encode($id); ?>;
+        const response = await fetch(`http://localhost/imsfin/IMS_API/api/product/read_single_product.php?id=${productId}`);
+        const data = await response.json();
+        console.log('Product API Response:', data);
+
+        if (data.success && data.status === 200 && data.data) {
+            const product = data.data;
+            document.getElementById('companySelect').value = product.company_name || '';
+            document.getElementById('product_name').value = product.product_name || '';
+            document.getElementById('unitSelect').value = product.unit || '';
+            document.getElementById('packing_size').value = product.packing_size || '';
+        } else {
+            showErrorMessage('Error loading product: ' + (data.message || 'Product not found'));
+        }
+    } catch (error) {
+        console.error('Error loading product data:', error);
+        showErrorMessage('Error loading product data. Please try again.');
+    }
 }
 
 // Form submission
-document.getElementById('editProductForm').addEventListener('submit', function(e) {
+document.getElementById('editProductForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
     const formData = new FormData(this);
     const productData = {};
     formData.forEach((value, key) => productData[key] = value.trim());
     
-    fetch('http://localhost/imsfin/IMS_API/api/product/update_product.php', {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(productData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.message === "Product was updated.") {
-            document.getElementById('error').style.display = 'none';
-            document.getElementById('success').style.display = 'block';
+    try {
+        const response = await fetch('http://localhost/imsfin/IMS_API/api/product/update_product.php', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(productData)
+        });
+        
+        const data = await response.json();
+        console.log('Update Response:', data);
+        
+        if (data.success && data.status === 200) {
+            showSuccessMessage('Product updated successfully!');
             setTimeout(() => {
                 window.location.href = 'add_product.php';
             }, 1500);
         } else {
-            document.getElementById('success').style.display = 'none';
-            document.getElementById('errorMessage').textContent = data.message;
-            document.getElementById('error').style.display = 'block';
+            showErrorMessage(data.message || 'Error updating product');
         }
-    })
-    .catch(error => {
+    } catch (error) {
         console.error('Error:', error);
-        document.getElementById('errorMessage').textContent = 'An error occurred. Please try again.';
-        document.getElementById('error').style.display = 'block';
-    });
+        showErrorMessage('Error updating product. Please try again.');
+    }
 });
 
 // Initialize page
-document.addEventListener('DOMContentLoaded', () => {
-    loadCompanies();
-    loadUnits();
+document.addEventListener('DOMContentLoaded', async () => {
+    await Promise.all([loadCompanies(), loadUnits()]);
 });
 </script>
 

@@ -66,19 +66,26 @@ try {
     $purchase->purchased_by = $bought_by;
 
     if ($purchase->create()) {
-        http_response_code(201);
-        echo json_encode(array("message" => "Purchase was created."));
+        $status_code = 201;
+        http_response_code($status_code);
+        echo json_encode([
+            "status" => $status_code,
+            "success" => true,
+            "message" => "Purchase was created."
+        ]);
     } else {
         throw new Exception("Unable to create purchase");
     }
 
 } catch (Exception $e) {
-    error_log("Purchase creation error: " . $e->getMessage());
-    http_response_code(503);
-    echo json_encode(array(
+    $status_code = 503;
+    http_response_code($status_code);
+    echo json_encode([
+        "status" => $status_code,
+        "success" => false,
         "message" => "Unable to create purchase.",
         "error" => $e->getMessage(),
         "details" => "Please try again or contact support if the issue persists."
-    ));
+    ]);
 }
 ?>

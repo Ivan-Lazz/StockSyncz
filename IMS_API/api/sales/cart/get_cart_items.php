@@ -19,13 +19,21 @@ try {
         }
     }
 
-    http_response_code(200);
-    echo json_encode($cart_items);
+    $status_code = 200;
+    http_response_code($status_code);
+    echo json_encode([
+        "status" => $status_code,
+        "success" => true,
+        "data" => $cart_items
+    ]);
 
 } catch (Exception $e) {
-    http_response_code(400);
-    echo json_encode(array(
+    $status_code = 400;
+    http_response_code($status_code);
+    echo json_encode([
+        "status" => $status_code,
+        "success" => false,
         "message" => "Unable to get cart items",
         "error" => $e->getMessage()
-    ));
+    ]);
 }

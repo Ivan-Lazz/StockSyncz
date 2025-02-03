@@ -44,13 +44,21 @@ try {
         throw new Exception($result['error']);
     }
 
-    http_response_code(200);
-    echo json_encode(array("message" => "Product added to cart successfully"));
+    $status_code = 200;
+    http_response_code($status_code);
+    echo json_encode([
+        "status" => $status_code,
+        "success" => true,
+        "message" => "Product added to cart successfully"
+    ]);
 
 } catch (Exception $e) {
-    http_response_code(400);
-    echo json_encode(array(
+    $status_code = 400;
+    http_response_code($status_code);
+    echo json_encode([
+        "status" => $status_code,
+        "success" => false,
         "message" => "Unable to add product to cart",
         "error" => $e->getMessage()
-    ));
+    ]);
 }

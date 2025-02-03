@@ -173,12 +173,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const data = await response.json();
 
-            if (data.message === "Purchase was created.") {
+            if (data.success && data.status === 201) {
                 showSuccess();
                 this.reset();
                 resetAllDropdowns();
+                loadInitialData(); // Reload initial data after successful submission
             } else {
-                throw new Error(data.error || "Failed to create purchase");
+                throw new Error(data.error || data.message || "Failed to create purchase");
             }
         } catch (error) {
             showError(error.message);
@@ -191,13 +192,23 @@ async function loadInitialData() {
     try {
         // Load companies
         const companyResponse = await fetch('http://localhost/imsfin/IMS_API/api/company/get_companies.php');
-        const companies = await companyResponse.json();
-        populateDropdown('company_name', companies, 'companyname');
+        const companiesData = await companyResponse.json();
+        
+        if (companiesData.status === 200 && companiesData.data) {
+            populateDropdown('company_name', companiesData.data, 'companyname');
+        } else {
+            console.warn('No companies data available');
+        }
 
         // Load parties
         const partyResponse = await fetch('http://localhost/imsfin/IMS_API/api/party/get_parties.php');
-        const parties = await partyResponse.json();
-        populateDropdown('party_name', parties, 'businessname');
+        const partiesData = await partyResponse.json();
+        
+        if (partiesData.status === 200 && partiesData.data) {
+            populateDropdown('party_name', partiesData.data, 'businessname');
+        } else {
+            console.warn('No parties data available');
+        }
     } catch (error) {
         console.error('Error loading initial data:', error);
         showError('Failed to load initial data');
@@ -208,8 +219,14 @@ async function loadInitialData() {
 async function loadProducts(company_name) {
     try {
         const response = await fetch(`http://localhost/imsfin/IMS_API/api/product/get_products_by_company.php?company_name=${encodeURIComponent(company_name)}`);
-        const products = await response.json();
-        populateDropdown('product_name', products, 'product_name');
+        const data = await response.json();
+        
+        if (data.status === 200 && data.success && data.data) {
+            populateDropdown('product_name', data.data, 'product_name');
+        } else {
+            console.warn('No products found for this company');
+            resetDependentDropdowns(['product_name', 'unit', 'packing_size']);
+        }
     } catch (error) {
         console.error('Error loading products:', error);
         showError('Failed to load products');
@@ -222,8 +239,14 @@ async function loadUnits(product_name, company_name) {
         const response = await fetch(
             `http://localhost/imsfin/IMS_API/api/unit/get_units_by_product.php?product_name=${encodeURIComponent(product_name)}&company_name=${encodeURIComponent(company_name)}`
         );
-        const units = await response.json();
-        populateDropdown('unit', units, 'unit');
+        const data = await response.json();
+        
+        if (data.status === 200 && data.success && data.data) {
+            populateDropdown('unit', data.data, 'unit');
+        } else {
+            console.warn('No units found for this product');
+            resetDependentDropdowns(['unit', 'packing_size']);
+        }
     } catch (error) {
         console.error('Error loading units:', error);
         showError('Failed to load units');
@@ -234,10 +257,16 @@ async function loadUnits(product_name, company_name) {
 async function loadPackingSizes(unit, product_name, company_name) {
     try {
         const response = await fetch(
-            `http://localhost/imsfin/IMS_API/api/unit/get_packing_sizes.php?unit=${encodeURIComponent(unit)}&product_name=${encodeURIComponent(product_name)}&company_name=${encodeURIComponent(company_name)}`
+            `http://localhost/imsfin/IMS_API/api/product/get_packing_sizes.php?unit=${encodeURIComponent(unit)}&product_name=${encodeURIComponent(product_name)}&company_name=${encodeURIComponent(company_name)}`
         );
-        const sizes = await response.json();
-        populateDropdown('packing_size', sizes, 'packing_size');
+        const data = await response.json();
+        
+        if (data.status === 200 && data.success && data.data) {
+            populateDropdown('packing_size', data.data, 'packing_size');
+        } else {
+            console.warn('No packing sizes found');
+            resetDependentDropdowns(['packing_size']);
+        }
     } catch (error) {
         console.error('Error loading packing sizes:', error);
         showError('Failed to load packing sizes');

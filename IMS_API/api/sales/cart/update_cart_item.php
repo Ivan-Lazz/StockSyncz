@@ -30,16 +30,24 @@ try {
 
     if ($available_qty >= $data->qty) {
         $_SESSION['cart'][$data->session_id]['qty'] = $data->qty;
-        http_response_code(200);
-        echo json_encode(array("message" => "Cart updated successfully"));
+        $status_code = 200;
+        http_response_code($status_code);
+        echo json_encode([
+            "status" => $status_code,
+            "success" => true,
+            "message" => "Cart updated successfully"
+        ]);
     } else {
         throw new Exception("Requested quantity not available");
     }
 
 } catch (Exception $e) {
-    http_response_code(400);
-    echo json_encode(array(
+    $status_code = 400;
+    http_response_code($status_code);
+    echo json_encode([
+        "status" => $status_code,
+        "success" => false,
         "message" => "Unable to update cart",
         "error" => $e->getMessage()
-    ));
+    ]);
 }

@@ -283,7 +283,7 @@ async function loadUnits(product_name, company_name) {
 async function loadPackingSizes(unit, product_name, company_name) {
     try {
         const response = await fetch(
-            `http://localhost/imsfin/IMS_API/api/unit/get_packing_sizes.php?unit=${encodeURIComponent(unit)}&product_name=${encodeURIComponent(product_name)}&company_name=${encodeURIComponent(company_name)}`
+            `http://localhost/imsfin/IMS_API/api/product/get_packing_sizes.php?unit=${encodeURIComponent(unit)}&product_name=${encodeURIComponent(product_name)}&company_name=${encodeURIComponent(company_name)}`
         );
         const sizes = await response.json();
         const select = document.getElementById('packing_size');

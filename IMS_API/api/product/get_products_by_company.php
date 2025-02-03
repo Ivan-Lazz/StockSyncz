@@ -21,13 +21,28 @@ if (isset($_GET['company_name'])) {
                 "product_name" => $row['product_name']
             ));
         }
-        http_response_code(200);
-        echo json_encode($products_arr);
+        $status_code = 200;
+        http_response_code($status_code);
+        echo json_encode([
+            "status" => $status_code,
+            "success" => true,
+            "data" => $products_arr
+        ]);
     } else {
-        http_response_code(404);
-        echo json_encode(array("message" => "No products found."));
+        $status_code = 404;
+        http_response_code($status_code);
+        echo json_encode([
+            "status" => $status_code,
+            "success" => false,
+            "message" => "No products found."
+        ]);
     }
 } else {
-    http_response_code(400);
-    echo json_encode(array("message" => "Missing company name parameter."));
+    $status_code = 400;
+    http_response_code($status_code);
+    echo json_encode([
+        "status" => $status_code,
+        "success" => false,
+        "message" => "Missing company name parameter."
+    ]);
 }

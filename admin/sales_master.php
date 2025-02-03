@@ -180,14 +180,18 @@ while($row = mysqli_fetch_array($res)) {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Load initial data
+    // Initialize existing functionality
     loadCompanies();
-    loadCart();
+    loadCart(); // Load initial cart state
     
-    // Event listeners
+    // Add event listener for Add to Cart button
+    document.getElementById('addToCartBtn').addEventListener('click', addToCart);
+    
+    // Other existing event listeners
     document.getElementById('company_name').addEventListener('change', function() {
         if (this.value) {
             loadProducts(this.value);
+            resetFields(['product_name', 'unit', 'packing_size', 'price', 'qty', 'total']);
         }
     });
 
@@ -195,6 +199,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (this.value) {
             const company_name = document.getElementById('company_name').value;
             loadUnits(this.value, company_name);
+            resetFields(['unit', 'packing_size', 'price', 'qty', 'total']);
         }
     });
 
@@ -203,21 +208,41 @@ document.addEventListener('DOMContentLoaded', function() {
             const company_name = document.getElementById('company_name').value;
             const product_name = document.getElementById('product_name').value;
             loadPackingSizes(this.value, product_name, company_name);
+            resetFields(['packing_size', 'price', 'qty', 'total']);
         }
     });
 
     document.getElementById('packing_size').addEventListener('change', function() {
         if (this.value) {
             loadPrice();
+            resetFields(['qty', 'total']);
         }
     });
 
-    document.getElementById('qty').addEventListener('input', function() {
-        calculateTotal();
+    document.getElementById('qty').addEventListener('input', calculateTotal);
+    
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Alt + A to add to cart
+        if (e.altKey && e.key === 'a') {
+            e.preventDefault();
+            addToCart();
+        }
+        
+        // Alt + G to generate bill
+        if (e.altKey && e.key === 'g') {
+            e.preventDefault();
+            if (validateCart()) {
+                generateBill();
+            }
+        }
     });
-
-    document.getElementById('addToCartBtn').addEventListener('click', addToCart);
-    // document.getElementById('generateBillBtn').addEventListener('click', generateBill);
+    
+    // Add form submission prevention
+    document.querySelector('form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        return false;
+    });
 });
 
 // Loading companies
@@ -225,83 +250,121 @@ async function loadCompanies() {
     showSpinner();
     try {
         const response = await fetch('http://localhost/imsfin/IMS_API/api/company/get_companies.php');
-        const companies = await response.json();
-        const select = document.getElementById('company_name');
+        const result = await response.json();
         
-        companies.forEach(company => {
+        if (!result.data) {
+            throw new Error(result.message || 'Failed to load companies');
+        }
+
+        const select = document.getElementById('company_name');
+        select.innerHTML = '<option value="">Select</option>';
+        
+        result.data.forEach(company => {
             const option = document.createElement('option');
             option.value = company.companyname;
             option.textContent = company.companyname;
             select.appendChild(option);
         });
     } catch (error) {
-        console.error('Error loading companies:', error);
+        showErrorMessage('Error loading companies: ' + error.message);
     } finally {
         hideSpinner();
     }
 }
 
+
 // Load products based on company
 async function loadProducts(company_name) {
+    showSpinner();
     try {
         const response = await fetch(`http://localhost/imsfin/IMS_API/api/product/get_products_by_company.php?company_name=${encodeURIComponent(company_name)}`);
-        const products = await response.json();
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.message || 'Failed to load products');
+        }
+
         const select = document.getElementById('product_name');
         select.innerHTML = '<option value="">Select</option>';
         
-        products.forEach(product => {
-            const option = document.createElement('option');
-            option.value = product.product_name;
-            option.textContent = product.product_name;
-            select.appendChild(option);
-        });
+        if (result.data && result.data.length > 0) {
+            result.data.forEach(product => {
+                const option = document.createElement('option');
+                option.value = product.product_name;
+                option.textContent = product.product_name;
+                select.appendChild(option);
+            });
+        }
     } catch (error) {
-        console.error('Error loading products:', error);
+        showErrorMessage('Error loading products: ' + error.message);
+    } finally {
+        hideSpinner();
     }
 }
 
 // Load units
 async function loadUnits(product_name, company_name) {
+    showSpinner();
     try {
         const response = await fetch(`http://localhost/imsfin/IMS_API/api/unit/get_units_by_product.php?product_name=${encodeURIComponent(product_name)}&company_name=${encodeURIComponent(company_name)}`);
-        const units = await response.json();
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.message || 'Failed to load units');
+        }
+
         const select = document.getElementById('unit');
         select.innerHTML = '<option value="">Select</option>';
         
-        units.forEach(unit => {
-            const option = document.createElement('option');
-            option.value = unit.unit;
-            option.textContent = unit.unit;
-            select.appendChild(option);
-        });
+        if (result.data && result.data.length > 0) {
+            result.data.forEach(unit => {
+                const option = document.createElement('option');
+                option.value = unit.unit;
+                option.textContent = unit.unit;
+                select.appendChild(option);
+            });
+        }
     } catch (error) {
-        console.error('Error loading units:', error);
+        showErrorMessage('Error loading units: ' + error.message);
+    } finally {
+        hideSpinner();
     }
 }
 
 // Load packing sizes
 async function loadPackingSizes(unit, product_name, company_name) {
+    showSpinner();
     try {
         const response = await fetch(
-            `http://localhost/imsfin/IMS_API/api/unit/get_packing_sizes.php?unit=${encodeURIComponent(unit)}&product_name=${encodeURIComponent(product_name)}&company_name=${encodeURIComponent(company_name)}`
+            `http://localhost/imsfin/IMS_API/api/product/get_packing_sizes.php?unit=${encodeURIComponent(unit)}&product_name=${encodeURIComponent(product_name)}&company_name=${encodeURIComponent(company_name)}`
         );
-        const sizes = await response.json();
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.message || 'Failed to load packing sizes');
+        }
+
         const select = document.getElementById('packing_size');
         select.innerHTML = '<option value="">Select</option>';
         
-        sizes.forEach(size => {
-            const option = document.createElement('option');
-            option.value = size.packing_size;
-            option.textContent = size.packing_size;
-            select.appendChild(option);
-        });
+        if (result.data && result.data.length > 0) {
+            result.data.forEach(size => {
+                const option = document.createElement('option');
+                option.value = size.packing_size;
+                option.textContent = size.packing_size;
+                select.appendChild(option);
+            });
+        }
     } catch (error) {
-        console.error('Error loading packing sizes:', error);
+        showErrorMessage('Error loading packing sizes: ' + error.message);
+    } finally {
+        hideSpinner();
     }
 }
 
 // Load price
 async function loadPrice() {
+    showSpinner();
     try {
         const company_name = document.getElementById('company_name').value;
         const product_name = document.getElementById('product_name').value;
@@ -311,14 +374,21 @@ async function loadPrice() {
         const response = await fetch(
             `http://localhost/imsfin/IMS_API/api/product/get_product_price.php?company_name=${encodeURIComponent(company_name)}&product_name=${encodeURIComponent(product_name)}&unit=${encodeURIComponent(unit)}&packing_size=${encodeURIComponent(packing_size)}`
         );
-        const data = await response.json();
+        const result = await response.json();
         
-        document.getElementById('price').value = data.price;
+        if (!result.success) {
+            throw new Error(result.message || 'Failed to load price');
+        }
+
+        document.getElementById('price').value = result.data.price;
         calculateTotal();
     } catch (error) {
-        console.error('Error loading price:', error);
+        showErrorMessage('Error loading price: ' + error.message);
+    } finally {
+        hideSpinner();
     }
 }
+
 
 // Calculate total
 function calculateTotal() {
@@ -331,15 +401,29 @@ function calculateTotal() {
 async function addToCart() {
     showSpinner();
     try {
+        // Get form values
         const cartData = {
             company_name: document.getElementById('company_name').value,
             product_name: document.getElementById('product_name').value,
             unit: document.getElementById('unit').value,
             packing_size: document.getElementById('packing_size').value,
-            price: document.getElementById('price').value,
-            qty: document.getElementById('qty').value
+            price: parseFloat(document.getElementById('price').value),
+            qty: parseInt(document.getElementById('qty').value)
         };
 
+        // Validate all fields
+        for (const [key, value] of Object.entries(cartData)) {
+            if (!value || value === 0) {
+                throw new Error(`Please select/enter ${key.replace('_', ' ')}`);
+            }
+        }
+
+        // Validate quantity
+        if (cartData.qty <= 0) {
+            throw new Error('Quantity must be greater than 0');
+        }
+
+        // Make API request
         const response = await fetch('http://localhost/imsfin/IMS_API/api/sales/cart/add_to_cart.php', {
             method: 'POST',
             headers: {
@@ -350,41 +434,61 @@ async function addToCart() {
 
         const result = await response.json();
         
-        if (response.ok) {
-            alert('Product added to cart');
-            loadCart();
-            resetProductForm();
-        } else {
-            throw new Error(result.error || 'Failed to add to cart');
+        if (!result.success) {
+            throw new Error(result.message || 'Failed to add to cart');
         }
+
+        showSuccessMessage('Product added to cart successfully');
+        await loadCart(); // Reload cart items
+        resetProductForm(); // Reset form fields
     } catch (error) {
-        alert(error.message);
+        showErrorMessage(error.message);
     } finally {
         hideSpinner();
     }
+}
+
+function resetFields(fields) {
+    fields.forEach(field => {
+        const element = document.getElementById(field);
+        if (element.tagName === 'SELECT') {
+            element.innerHTML = '<option value="">Select</option>';
+        } else if (element.tagName === 'INPUT') {
+            element.value = field === 'qty' ? '0' : '';
+        }
+    });
 }
 
 // Load cart items
 async function loadCart() {
     try {
         const response = await fetch('http://localhost/imsfin/IMS_API/api/sales/cart/get_cart_items.php');
-        const items = await response.json();
+        const result = await response.json();
         
-        const cartHtml = generateCartHtml(items);
+        if (!result.success) {
+            throw new Error(result.message || 'Failed to load cart');
+        }
+
+        const cartHtml = generateCartHtml(result.data);
         document.getElementById('cartItems').innerHTML = cartHtml;
         
         // Load cart total
         const totalResponse = await fetch('http://localhost/imsfin/IMS_API/api/sales/cart/get_cart_total.php');
-        const totalData = await totalResponse.json();
-        document.getElementById('cartTotal').textContent = totalData.total.toFixed(2);
+        const totalResult = await totalResponse.json();
+        
+        if (!totalResult.success) {
+            throw new Error(totalResult.message || 'Failed to load cart total');
+        }
+
+        document.getElementById('cartTotal').textContent = formatNumber(totalResult.data.total);
     } catch (error) {
-        console.error('Error loading cart:', error);
+        showErrorMessage('Error loading cart: ' + error.message);
     }
 }
 
 // Generate cart HTML
 function generateCartHtml(items) {
-    if (!items.length) {
+    if (!items || !items.length) {
         return '<p>Cart is empty</p>';
     }
 
@@ -403,32 +507,49 @@ function generateCartHtml(items) {
                 </tr>
             </thead>
             <tbody>
-                ${items.map(item => `
-                    <tr>
-                        <td>${item.company_name}</td>
-                        <td>${item.product_name}</td>
-                        <td>${item.unit}</td>
-                        <td>${item.packing_size}</td>
-                        <td>${item.price}</td>
-                        <td>
-                            <input type="number" value="${item.qty}" 
-                                onchange="updateCartItem(${item.session_id}, this.value)">
-                        </td>
-                        <td>${item.total.toFixed(2)}</td>
-                        <td>
-                            <button onclick="deleteCartItem(${item.session_id})" 
-                                    class="btn btn-danger btn-small">Delete</button>
-                        </td>
-                    </tr>
-                `).join('')}
+                ${items.map(item => {
+                    const price = parseFloat(item.price);
+                    const qty = parseFloat(item.qty);
+                    const total = price * qty;
+                    
+                    return `
+                        <tr>
+                            <td>${item.company_name}</td>
+                            <td>${item.product_name}</td>
+                            <td>${item.unit}</td>
+                            <td>${item.packing_size}</td>
+                            <td>₱${formatNumber(price)}</td>
+                            <td>
+                                <input type="number" min="1" value="${qty}" 
+                                    onchange="updateCartItem(${item.session_id}, this.value)">
+                            </td>
+                            <td>₱${formatNumber(total)}</td>
+                            <td>
+                                <button onclick="deleteCartItem(${item.session_id})" 
+                                        class="btn btn-danger btn-small">
+                                    <i class="icon-trash"></i> Delete
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('')}
             </tbody>
         </table>
     `;
 }
 
+function formatNumber(number) {
+    return parseFloat(number).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
 // Update cart item
 async function updateCartItem(sessionId, qty) {
+    showSpinner();
     try {
+        if (qty <= 0) {
+            throw new Error('Quantity must be greater than 0');
+        }
+
         const response = await fetch('http://localhost/imsfin/IMS_API/api/sales/cart/update_cart_item.php', {
             method: 'PUT',
             headers: {
@@ -436,25 +557,33 @@ async function updateCartItem(sessionId, qty) {
             },
             body: JSON.stringify({
                 session_id: sessionId,
-                qty: qty
+                qty: parseInt(qty)
             })
         });
 
         const result = await response.json();
         
-        if (response.ok) {
-            loadCart();
-        } else {
-            throw new Error(result.error || 'Failed to update cart');
+        if (!result.success) {
+            throw new Error(result.message || 'Failed to update cart');
         }
+
+        showSuccessMessage('Cart updated successfully');
+        await loadCart();
     } catch (error) {
-        alert(error.message);
-        loadCart(); // Reload cart to reset quantities
+        showErrorMessage(error.message);
+        await loadCart(); // Reload cart to reset quantities
+    } finally {
+        hideSpinner();
     }
 }
 
 // Delete cart item
 async function deleteCartItem(sessionId) {
+    if (!confirm('Are you sure you want to remove this item?')) {
+        return;
+    }
+
+    showSpinner();
     try {
         const response = await fetch('http://localhost/imsfin/IMS_API/api/sales/cart/delete_cart_item.php', {
             method: 'DELETE',
@@ -468,13 +597,16 @@ async function deleteCartItem(sessionId) {
 
         const result = await response.json();
         
-        if (response.ok) {
-            loadCart();
-        } else {
-            throw new Error(result.error || 'Failed to delete item');
+        if (!result.success) {
+            throw new Error(result.message || 'Failed to delete item');
         }
+
+        showSuccessMessage('Item removed from cart');
+        await loadCart();
     } catch (error) {
-        alert(error.message);
+        showErrorMessage(error.message);
+    } finally {
+        hideSpinner();
     }
 }
 
@@ -483,21 +615,16 @@ async function generateBill() {
     try {
         const fullName = document.getElementById('full_name').value.trim();
         if (!fullName) {
-            alert('Please enter full name');
-            return;
+            throw new Error('Please enter full name');
         }
 
-        // Validate cart first
+        // Validate cart
         const cartTable = document.getElementById('cartItems');
-        const cartContent = cartTable.innerHTML;
-        if (!cartTable || cartContent.includes('Cart is empty')) {
-            alert('Please add items to the cart before generating bill');
-            return;
+        if (!cartTable || cartTable.innerHTML.includes('Cart is empty')) {
+            throw new Error('Please add items to the cart before generating bill');
         }
 
-        // Get username from hidden input
         const username = document.querySelector('input[name="username"]').value;
-        
         const billData = {
             full_name: fullName,
             bill_type: document.getElementById('bill_type').value,
@@ -507,34 +634,29 @@ async function generateBill() {
 
         const submitButton = document.getElementById('generateBillBtn');
         submitButton.disabled = true;
+        showSpinner();
 
         const response = await fetch('http://localhost/imsfin/IMS_API/api/sales/bills/create_bill.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(billData),
-            credentials: 'same-origin'
+            body: JSON.stringify(billData)
         });
-
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            throw new Error('Received non-JSON response from server');
-        }
 
         const result = await response.json();
         
-        if (result.success) {
-            alert('Bill generated successfully');
-            // window.location.href = 'view_bills.php';
-        } else {
+        if (!result.success) {
             throw new Error(result.message || 'Failed to generate bill');
         }
 
+        showSuccessMessage('Bill generated successfully');
+        window.location.href = 'view_bills.php';
+
     } catch (error) {
-        console.error('Error:', error);
-        alert(error.message || 'Error generating bill. Please try again.');
+        showErrorMessage(error.message);
     } finally {
+        hideSpinner();
         const submitButton = document.getElementById('generateBillBtn');
         submitButton.disabled = false;
     }
@@ -629,6 +751,7 @@ function showErrorMessage(message) {
         errorDiv.remove();
     }, 3000);
 }
+
 
 // Add the necessary CSS
 const styles = `
