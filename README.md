@@ -1,6 +1,7 @@
 # Inventory Management System
 ### Introduction
 Welcome to our Inventory Management System documentation. Here, you'll find all the essential information to efficiently track, manage, and optimize your inventory. Dive in to learn how to streamline your processes and ensure seamless operations.
+
 ### Purpose of the API
 In an **Inventory Management System (IMS)**, authentication and authorization ensure that users access only the appropriate areas of the system based on their role. Authentication verifies a user's identity, while authorization controls what actions they can perform.
 
