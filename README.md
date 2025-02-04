@@ -14,17 +14,17 @@ In an **Inventory Management System (IMS)**, authentication and authorization en
    1. Open your terminal or command prompt.
    2. Clone the repository using the following command:
       ```
-      git clone https://github.com/Ivan-Lazz/StockSyncz
+      git clone https://github.com/Ivan-Lazz/imsfin
       ```
    3. Once cloned, navigate to the project directory:
       ```
-      cd StockSyncz
+      cd imsfin
       ```
 2. ### Move Folders to XAMPP's htdocs
    1. Locate your XAMPP installation folder. The default path is typically:
       - Windows: ```C:\xampp\htdocs```
    2. Copy the following folder from the cloned repository into the htdocs directory:
-      - StockSyncz
+      - imsfin
 3. ### Set Up the Database
    1. Start **XAMPP** and ensure **Apache** and **MySQL** services are running. Then, open your browser and go to:
       - ``` http://localhost/phpmyadmin ```
@@ -46,7 +46,7 @@ In an **Inventory Management System (IMS)**, authentication and authorization en
 If you encounter a database error, check if you’ve imported the SQL files into the correct database.
 
 ## REST API Base URL
-The base url for the api is: ``` http://localhost/StockSyncz/IMS_API/ ```
+The base url for the api is: ``` http://localhost/imsfin/IMS_API/ ```
 
 ## API Endpoints and Uses
 - ``` /api/auth/ ``` : verifies user credentials against the database and initiates a session for successful logins.
