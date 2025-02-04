@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 02, 2025 at 11:54 AM
+-- Generation Time: Feb 04, 2025 at 01:13 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -51,7 +51,6 @@ INSERT INTO `billing_details` (`id`, `bill_id`, `product_company`, `product_name
 (9, '6', 'National Bookstore', 'Stapler', 'Box', '20', '1500', '10'),
 (10, '6', 'National Bookstore', 'Stapler Wire', 'Box', '100', '750', '15'),
 (11, '7', 'National Bookstore', 'HBW Ballpoint Pen BLCK', 'Box', '150', '85', '3'),
-(12, '8', 'National Bookstore', 'HBW Ballpoint Pen BLCK', 'Box', '150', '85', '15'),
 (13, '8', 'National Bookstore', 'Stapler', 'Box', '20', '1500', '10'),
 (14, '8', 'National Bookstore', 'Stapler Wire', 'Box', '100', '750', '10'),
 (15, '9', 'National Bookstore', 'HBW Ballpoint Pen BLCK', 'Box', '150', '85', '5'),
@@ -59,7 +58,21 @@ INSERT INTO `billing_details` (`id`, `bill_id`, `product_company`, `product_name
 (17, '11', 'National Bookstore', 'HBW Ballpoint Pen BLCK', 'Box', '150', '85', '15'),
 (18, '12', 'National Bookstore', 'HBW Ballpoint Pen BLCK', 'Box', '150', '85', '10'),
 (19, '13', 'National Bookstore', 'HBW Ballpoint Pen BLCK', 'Box', '150', '85', '13'),
-(20, '14', 'National Bookstore', 'HBW Ballpoint Pen BLCK', 'Box', '150', '85', '10');
+(20, '14', 'National Bookstore', 'HBW Ballpoint Pen BLCK', 'Box', '150', '85', '10'),
+(21, '15', 'National Bookstore', 'Stapler Wire', 'Box', '100', '750', '15'),
+(23, '17', 'National Bookstore', 'HBW Ballpoint Pen BLCK', 'Box', '150', '80', '5'),
+(24, '17', 'Tesla', 'Cybertruck', 'Electric Vehicle', '1', '200000', '2'),
+(25, '18', 'Tesla', 'Cybertruck', 'Electric Vehicle', '1', '200000', '3'),
+(26, '18', 'National Bookstore', 'Stapler', 'Box', '20', '1500', '5'),
+(27, '18', 'National Bookstore', 'Stapler Wire', 'Box', '100', '750', '10'),
+(28, '18', 'Marby\'s Bakeshop', 'Ube Hopia', 'Kilogram', '5', '80', '5'),
+(29, '18', 'Hard Copy', 'A4 Bond Paper', 'Ream', '5', '399', '20'),
+(30, '19', 'Tesla', 'Cybertruck', 'Electric Vehicle', '1', '200000', '2'),
+(31, '19', 'National Bookstore', 'Stapler', 'Box', '20', '1500', '50'),
+(32, '19', 'National Bookstore', 'Stapler Wire', 'Box', '100', '750', '25'),
+(34, '20', 'National Bookstore', 'HBW Ballpoint Pen BLCK', 'Box', '150', '80', '15'),
+(36, '21', 'Marby\'s Bakeshop', 'Ube Hopia', 'Kilogram', '5', '80', '10'),
+(37, '22', 'Xiaomi', 'Redmi Note 10 Pro', 'Box', '100', '150', '10');
 
 -- --------------------------------------------------------
 
@@ -94,7 +107,15 @@ INSERT INTO `billing_header` (`id`, `full_name`, `bill_type`, `date`, `bill_no`,
 (11, 'Zage', 'Cash', '2025-02-02', '00011', 'admin'),
 (12, 'Ronii', 'Debit', '2025-02-02', '00012', 'admin'),
 (13, 'Ronald', 'Cash', '2025-02-02', '00013', 'admin'),
-(14, 'Java Script', 'Cash', '2025-02-02', '00014', 'lala');
+(14, 'Java Script', 'Cash', '2025-02-02', '00014', 'lala'),
+(15, 'Ronald mcDo', 'Cash', '2025-02-02', '00015', 'admin'),
+(16, 'Ronald mcDo', 'Cash', '2025-02-02', '00016', 'admin'),
+(17, 'Si Es Es', 'Cash', '2025-02-02', '00017', 'admin'),
+(18, 'Eych Ti Em El', 'Cash', '2025-02-02', '00018', 'admin'),
+(19, 'IMS User', 'Cash', '2025-02-02', '00019', 'lala'),
+(20, 'Sodi Navi', 'Cash', '2025-02-03', '00020', 'admin'),
+(21, 'adma admimi', 'Cash', '2025-02-03', '00021', 'admin'),
+(22, 'Test User Sale', 'Cash', '2025-02-04', '00022', 'lala');
 
 -- --------------------------------------------------------
 
@@ -124,8 +145,7 @@ INSERT INTO `company_name` (`id`, `companyname`) VALUES
 (10, 'Toyota'),
 (11, 'Marby\'s Bakeshop'),
 (12, 'Jollibee'),
-(13, 'McDonalds'),
-(14, 'Foton');
+(13, 'McDonalds');
 
 -- --------------------------------------------------------
 
@@ -181,7 +201,8 @@ INSERT INTO `products` (`id`, `company_name`, `product_name`, `unit`, `packing_s
 (5, 'Xiaomi', 'Redmi Note 10 Pro', 'Box', '100'),
 (6, 'Marby\'s Bakeshop', 'Ube Hopia', 'Kilogram', '5'),
 (7, 'Toyota', 'L300', 'Van', '1'),
-(8, 'National Bookstore', 'HBW Ballpoint Pen BLCK', 'Box', '150');
+(8, 'National Bookstore', 'HBW Ballpoint Pen BLCK', 'Box', '150'),
+(12, 'Xiaomi', 'Note 10 Pro 5G', 'Box', '10');
 
 -- --------------------------------------------------------
 
@@ -214,7 +235,15 @@ INSERT INTO `purchase_master` (`id`, `company_name`, `product_name`, `unit`, `pa
 (3, 'National Bookstore', 'Stapler Wire', 'Box', '100', '150', '750', 'Gotta Go Travel Agency', 'Cash', '2025-05-30', '2025-02-01', 'admin'),
 (4, 'Marby\'s Bakeshop', 'Ube Hopia', 'Kilogram', '5', '500', '80', 'Jammy\'s Fruit Jam and Sandwiches Factory', 'Cash', '2025-09-28', '2025-02-01', 'admin'),
 (5, 'Marby\'s Bakeshop', 'Ube Hopia', 'Kilogram', '5', '500', '80', 'Jammy\'s Fruit Jam and Sandwiches Factory', 'Cash', '2025-09-28', '2025-02-01', 'admin'),
-(6, 'National Bookstore', 'HBW Ballpoint Pen BLCK', 'Box', '150', '500', '85', 'Navi Net Cafe', 'Cash', '2025-04-24', '2025-02-01', 'admin');
+(6, 'National Bookstore', 'HBW Ballpoint Pen BLCK', 'Box', '150', '500', '85', 'Navi Net Cafe', 'Cash', '2025-04-24', '2025-02-01', 'admin'),
+(7, 'Tesla', 'Cybertruck', 'Electric Vehicle', '1', '50', '250000', 'Rick\'s Computer and Auto Repair', 'Cash', '2030-12-02', '2025-02-02', 'admin'),
+(8, 'Hard Copy', 'A4 Bond Paper', 'Ream', '5', '1500', '399', 'Hamada\'s Dine and Dash Restaurant', 'Cash', '2031-12-31', '2025-02-02', 'admin'),
+(9, 'Hard Copy', 'A4 Bond Paper', 'Ream', '5', '1000', '399', 'Rick\'s Computer and Auto Repair', 'Cash', '2025-02-28', '2025-02-02', 'admin'),
+(10, 'Marby\'s Bakeshop', 'Ube Hopia', 'Kilogram', '5', '600', '100', 'Gotta Go Travel Agency', 'Debit', '2025-02-28', '2025-02-02', 'admin'),
+(11, 'Hard Copy', 'A4 Bond Paper', 'Ream', '5', '50', '399', 'Jammy\'s Fruit Jam and Sandwiches Factory', 'Cash', '2025-05-31', '2025-02-02', 'admin'),
+(12, 'Tesla', 'Cybertruck', 'Electric Vehicle', '1', '10', '250000', 'Freddies Pizzaria', 'Debit', '2025-06-30', '2025-02-02', 'lala'),
+(13, 'Xiaomi', 'Note 10 Pro 5G', 'Box', '10', '1000', '15000', 'Navi Net Cafe', 'Cash', '2025-07-31', '2025-02-03', 'admin'),
+(14, 'Xiaomi', 'Redmi Note 10 Pro', 'Box', '100', '150', '150', 'Navi Net Cafe', 'Cash', '2025-09-30', '2025-02-04', 'lala');
 
 -- --------------------------------------------------------
 
@@ -243,7 +272,11 @@ CREATE TABLE `return_products` (
 INSERT INTO `return_products` (`id`, `return_by`, `bill_no`, `return_date`, `product_company`, `product_name`, `product_unit`, `packing_size`, `product_price`, `product_qty`, `total`) VALUES
 (1, 'admin', '00002', '2025-02-01', 'National Bookstore', 'Stapler Wire', 'Box', '100', '750', '15', '11250'),
 (2, 'admin', '00006', '2025-02-02', 'Tesla', 'Cybertruck', 'Electric Vehicle', '1', '150000', '1', '150000'),
-(3, 'admin', '00003', '2025-02-02', 'Marby\'s Bakeshop', 'Ube Hopia', 'Kilogram', '5', '80', '60', '4800');
+(3, 'admin', '00003', '2025-02-02', 'Marby\'s Bakeshop', 'Ube Hopia', 'Kilogram', '5', '80', '60', '4800'),
+(4, 'admin', '00008', '2025-02-02', 'National Bookstore', 'HBW Ballpoint Pen BLCK', 'Box', '150', '85', '15', '1275'),
+(5, 'admin', '00016', '2025-02-02', 'Tesla', 'Cybertruck', 'Electric Vehicle', '1', '200000', '15', '3000000'),
+(6, 'admin', '00019', '2025-02-03', 'Hard Copy', 'A4 Bond Paper', 'Ream', '5', '399', '150', '59850'),
+(7, 'lala', '00020', '2025-02-04', 'Xiaomi', 'Note 10 Pro 5G', 'Box', '10', '15000', '10', '150000');
 
 -- --------------------------------------------------------
 
@@ -266,11 +299,14 @@ CREATE TABLE `stock_master` (
 --
 
 INSERT INTO `stock_master` (`id`, `product_company`, `product_name`, `product_unit`, `packing_size`, `product_qty`, `product_selling_price`) VALUES
-(1, 'Tesla', 'Cybertruck', 'Electric Vehicle', 1, '1', '200000'),
-(2, 'National Bookstore', 'Stapler', 'Box', 20, '130', '1500'),
-(3, 'National Bookstore', 'Stapler Wire', 'Box', 100, '90', '750'),
-(4, 'Marby\'s Bakeshop', 'Ube Hopia', 'Kilogram', 5, '485', '80'),
-(5, 'National Bookstore', 'HBW Ballpoint Pen BLCK', 'Box', 150, '369', '85');
+(1, 'Tesla', 'Cybertruck', 'Electric Vehicle', 1, '54', '250000'),
+(2, 'National Bookstore', 'Stapler', 'Box', 20, '75', '1500'),
+(3, 'National Bookstore', 'Stapler Wire', 'Box', 100, '40', '750'),
+(4, 'Marby\'s Bakeshop', 'Ube Hopia', 'Kilogram', 5, '1070', '80'),
+(5, 'National Bookstore', 'HBW Ballpoint Pen BLCK', 'Box', 150, '364', '80'),
+(6, 'Hard Copy', 'A4 Bond Paper', 'Ream', 5, '2530', '399'),
+(7, 'Xiaomi', 'Note 10 Pro 5G', 'Box', 10, '1000', '15000'),
+(8, 'Xiaomi', 'Redmi Note 10 Pro', 'Box', 100, '140', '150');
 
 -- --------------------------------------------------------
 
@@ -323,10 +359,12 @@ CREATE TABLE `user_registration` (
 
 INSERT INTO `user_registration` (`id`, `firstname`, `lastname`, `username`, `password`, `role`, `status`) VALUES
 (6, 'Koga', 'admin', 'admin', '$2y$10$Coo1GuBiwxC7r6ZtWoLC5uqdyDbI.Q./7NL62.52ZCKhUsYK3N7aW', 'admin', 'active'),
-(7, 'Lazo', 'Navi', 'lala', 'lala', 'user', 'active'),
+(7, 'Lazo', 'Navi', 'lala', '$2y$10$NTT8DpQFwNp0rI1OGEpbN.7Cnce3cIZ091hdZ/IsSTpJY7VnPyRsu', 'user', 'active'),
 (8, 'Sodium', 'Na', 'navi', '$2y$10$1Mg3t18xOMhVJvTp3qtkk.5eGYqQP/bLBnq55WH0n7HRMalJ.nmAq', 'admin', 'active'),
 (9, 'CJ', 'Gunas', 'Zage', '$2y$10$oVF/3hZAOvIeq0aGYjgU1.20azNZk2vTGl3iswW0wc2Sy7LEKU2ze', 'user', 'active'),
-(12, 'Roni', 'Niel', 'gusi', '$2y$10$ta6CdVMtNUASDB2dQxG0Peh1tHMzNNiJLFppNU.ZJFWbYJ2l0yywq', 'user', 'active');
+(12, 'Roni', 'Niel', 'gusi', '$2y$10$ta6CdVMtNUASDB2dQxG0Peh1tHMzNNiJLFppNU.ZJFWbYJ2l0yywq', 'user', 'active'),
+(15, 'adma', 'admimi', 'admin123', '$2y$10$0XqFwhguLufm0nRzM3GRaeLy23UYiavsg10kGTrJU0yE4/xnqupK.', 'admin', 'active'),
+(16, 'test', 'admin', 'admintest', '$2y$10$kfYQPbXJi7PkvhterTNNW.WvatUDt3Vz41YUsluZPn.enQQK8bEqS', 'admin', 'active');
 
 --
 -- Indexes for dumped tables
@@ -400,61 +438,61 @@ ALTER TABLE `user_registration`
 -- AUTO_INCREMENT for table `billing_details`
 --
 ALTER TABLE `billing_details`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
 
 --
 -- AUTO_INCREMENT for table `billing_header`
 --
 ALTER TABLE `billing_header`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT for table `company_name`
 --
 ALTER TABLE `company_name`
-  MODIFY `id` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `party_info`
 --
 ALTER TABLE `party_info`
-  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(15) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(15) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `purchase_master`
 --
 ALTER TABLE `purchase_master`
-  MODIFY `id` int(15) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(15) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `return_products`
 --
 ALTER TABLE `return_products`
-  MODIFY `id` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `stock_master`
 --
 ALTER TABLE `stock_master`
-  MODIFY `id` int(15) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(15) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `units`
 --
 ALTER TABLE `units`
-  MODIFY `id` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `user_registration`
 --
 ALTER TABLE `user_registration`
-  MODIFY `id` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
