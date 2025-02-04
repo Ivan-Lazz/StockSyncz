@@ -13,7 +13,7 @@ In an **Inventory Management System (IMS)**, authentication and authorization en
    1. Open your terminal or command prompt.
    2. Clone the repository using the following command:
       ```
-      git clone https://github.com/Ivan-Lazz/ims.fin
+      git clone https://github.com/Ivan-Lazz/imsfin
       ```
    3. Once cloned, navigate to the project directory:
       ```
